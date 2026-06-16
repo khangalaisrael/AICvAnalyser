@@ -14,7 +14,7 @@ ROLE_PROFILES: dict[str, RoleProfile] = {
         "min_experience_years": 1,
     },
     "Data Scientist": {
-        "must_have": ["Python", "Machine Learning", "Statistics"],
+        "must_have": ["Python", "Machine Learning"],
         "nice_to_have": ["TensorFlow", "R", "SQL", "Spark"],
         "min_experience_years": 2,
     },

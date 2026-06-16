@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TalentScan — AI-Powered CV Screening</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0F172A;
+      --surface:  #1E293B;
+      --surface2: #334155;
+      --green:    #22C55E;
+      --green-lt: #6EE7B7;
+      --indigo:   #6366F1;
+      --text:     #F8FAFC;
+      --muted:    #94A3B8;
+      --border:   rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated bg ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 5%,  rgba(34,197,94,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 85% 85%, rgba(99,102,241,0.09) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34,197,94,0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Utilities ── */
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+    .glass {
+      background: rgba(30,41,59,0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green);
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 999px;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+      color: #fff; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600; font-size: 0.95rem;
+      padding: 0.75rem 1.75rem; border-radius: 12px;
+      border: none; cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 24px rgba(34,197,94,0.3);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent;
+      color: var(--muted); font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500; font-size: 0.95rem;
+      padding: 0.75rem 1.5rem; border-radius: 12px;
+      border: 1px solid var(--border); cursor: pointer; text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(34,197,94,0.4); color: var(--green); }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 3rem); max-width: 1100px;
+      background: rgba(15,23,42,0.8);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 100;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+      font-size: 1.1rem; color: var(--text); text-decoration: none;
+    }
+    .nav-brand svg { flex-shrink: 0; }
+    .nav-links { display: flex; align-items: center; gap: 2rem; }
+    .nav-links a {
+      color: var(--muted); font-size: 0.875rem; font-weight: 500;
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: var(--green) !important;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: rgba(34,197,94,0.2) !important; color: var(--green) !important; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 1.5rem 5rem;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow { margin-bottom: 1.5rem; }
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #22C55E 0%, #6EE7B7 60%, #6366F1 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      max-width: 560px; margin: 0 auto 2.5rem;
+      color: var(--muted); font-size: 1.1rem; line-height: 1.75;
+    }
+    .hero-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .hero-stat-row {
+      display: flex; align-items: center; gap: 2.5rem;
+      margin-top: 4rem; flex-wrap: wrap; justify-content: center;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat-num {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem;
+      font-weight: 700; color: var(--text);
+    }
+    .hero-stat-num span { color: var(--green); }
+    .hero-stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .hero-stat-divider { width: 1px; height: 40px; background: var(--border); }
+
+    /* ── Preview card ── */
+    .preview-wrap {
+      position: relative; z-index: 1;
+      padding: 0 1.5rem;
+      margin-bottom: 6rem;
+    }
+    .preview-card {
+      max-width: 860px; margin: 0 auto;
+      padding: 2rem;
+    }
+    .preview-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .verdict-hire {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 10px; padding: 0.75rem 1.25rem;
+      color: #86EFAC; font-weight: 600; font-size: 0.95rem;
+      margin-bottom: 1.25rem; width: 100%;
+    }
+    .score-row-preview {
+      display: flex; flex-direction: column; gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .score-item { display: flex; align-items: center; gap: 12px; }
+    .score-item-label { width: 170px; font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
+    .score-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22C55E, #6EE7B7); }
+    .score-item-pct { font-size: 0.75rem; color: var(--muted); width: 32px; text-align: right; flex-shrink: 0; }
+    .skill-tags-preview { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ptag {
+      display: inline-block;
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.22);
+      color: #6EE7B7; font-size: 0.72rem; font-weight: 500;
+      padding: 3px 10px; border-radius: 999px;
+    }
+
+    /* ── Section headers ── */
+    .section-header { text-align: center; margin-bottom: 4rem; }
+    .section-header .tag { margin-bottom: 1rem; }
+    .section-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.2; margin-bottom: 1rem;
+    }
+    .section-header p { color: var(--muted); max-width: 500px; margin: 0 auto; font-size: 1rem; }
+
+    /* ── Features ── */
+    .features { padding: 5rem 0; }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .feature-card {
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .feature-card:hover {
+      border-color: rgba(34,197,94,0.25);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 11px;
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1rem;
+      font-weight: 600; margin-bottom: 0.5rem;
+    }
+    .feature-card p { color: var(--muted); font-size: 0.875rem; line-height: 1.65; }
+
+    /* ── How it works ── */
+    .how { padding: 5rem 0; }
+    .how-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0; position: relative;
+    }
+    .how-steps::before {
+      content: '';
+      position: absolute; top: 28px; left: 80px; right: 80px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34,197,94,0.3), transparent);
+    }
+    .how-step { text-align: center; padding: 0 1.5rem; }
+    .step-num {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(30,41,59,0.9);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem;
+      font-weight: 700; color: var(--green);
+    }
+    .how-step h3 {
+      font-family: 'Space Grotesk', sans-serif; font-size: 1rem;
+      font-weight: 600; margin-bottom: 0.5rem;
+    }
+    .how-step p { color: var(--muted); font-size: 0.875rem; line-height: 1.65; }
+
+    /* ── Roles ── */
+    .roles { padding: 5rem 0; }
+    .roles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .role-card {
+      padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .role-card:hover { border-color: rgba(99,102,241,0.35); transform: translateY(-2px); }
+    .role-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .role-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .role-skills { display: flex; flex-wrap: wrap; gap: 5px; }
+    .role-skill {
+      font-size: 0.68rem; font-weight: 500;
+      padding: 2px 8px; border-radius: 999px;
+      background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+      color: #A5B4FC;
+    }
+
+    /* ── CTA ── */
+    .cta-section { padding: 6rem 0; }
+    .cta-card {
+      text-align: center; padding: 4rem 2rem;
+      background: rgba(30,41,59,0.6);
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: 24px;
+      position: relative; overflow: hidden;
+    }
+    .cta-card::before {
+      content: '';
+      position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(34,197,94,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 700; margin-bottom: 1rem; position: relative;
+    }
+    .cta-card p { color: var(--muted); max-width: 440px; margin: 0 auto 2rem; position: relative; }
+    .cta-actions { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; position: relative; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      position: relative; z-index: 1;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+      font-size: 0.95rem; color: var(--text); text-decoration: none;
+    }
+    .footer-copy { color: #475569; font-size: 0.8rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .how-steps::before { display: none; }
+      .hero-stat-divider { display: none; }
+      .hero-stat-row { gap: 2rem; }
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <a href="#" class="nav-brand" aria-label="TalentScan home">
+    <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#22C55E" fill-opacity="0.15"/>
+      <path d="M8 16.5L13 21.5L24 10.5" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="16" cy="16" r="7" stroke="#22C55E" stroke-width="1.5" opacity="0.3"/>
+    </svg>
+    TalentScan
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="#roles">Roles</a>
+    <a href="#" class="nav-cta">Launch App</a>
+  </nav>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <span class="tag">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+          <circle cx="5" cy="5" r="5"/>
+        </svg>
+        AI-Powered Recruitment
+      </span>
+    </div>
+    <h1 id="hero-heading">
+      Screen CVs in seconds,<br>
+      <span class="gradient">not hours.</span>
+    </h1>
+    <p>TalentScan uses AI to instantly analyse candidate CVs against your role requirements — delivering a scored verdict with zero manual effort.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Start Screening
+      </a>
+      <a href="#how-it-works" class="btn-secondary">See how it works</a>
+    </div>
+    <div class="hero-stat-row" role="list">
+      <div class="hero-stat" role="listitem">
+        <div class="hero-stat-num">8<span>×</span></div>
+        <div class="hero-stat-label">Faster screening</div>
+      </div>
+      <div class="hero-stat-divider" aria-hidden="true"></div>
+      <div class="hero-stat" role="listitem">
+        <div class="hero-stat-num">5<span>+</span></div>
+        <div class="hero-stat-label">Role profiles</div>
+      </div>
+      <div class="hero-stat-divider" aria-hidden="true"></div>
+      <div class="hero-stat" role="listitem">
+        <div class="hero-stat-num">100<span>%</span></div>
+        <div class="hero-stat-label">AI-scored</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Preview card ── -->
+<div class="preview-wrap">
+  <div class="container">
+    <div class="glass preview-card" role="img" aria-label="TalentScan result preview showing a HIRE verdict with score breakdown">
+      <div class="preview-header" aria-hidden="true">
+        <div class="preview-dot" style="background:#EF4444;"></div>
+        <div class="preview-dot" style="background:#EAB308;"></div>
+        <div class="preview-dot" style="background:#22C55E;"></div>
+        <span style="color:#475569;font-size:0.75rem;margin-left:8px;">TalentScan — Analysis Result</span>
+      </div>
+
+      <div class="verdict-hire" aria-label="Verdict: HIRE, Score 82 out of 100">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        <strong>HIRE</strong>&nbsp;— Score 82/100&nbsp;·&nbsp;Data Scientist
+      </div>
+
+      <div class="score-row-preview" aria-label="Score breakdown">
+        <div class="score-item">
+          <span class="score-item-label">Technical Skill Match</span>
+          <div class="score-bar-wrap"><div class="score-bar-fill" style="width:88%;"></div></div>
+          <span class="score-item-pct">88%</span>
+        </div>
+        <div class="score-item">
+          <span class="score-item-label">Achievements</span>
+          <div class="score-bar-wrap"><div class="score-bar-fill" style="width:75%;"></div></div>
+          <span class="score-item-pct">75%</span>
+        </div>
+        <div class="score-item">
+          <span class="score-item-label">Years Experience</span>
+          <div class="score-bar-wrap"><div class="score-bar-fill" style="width:90%;"></div></div>
+          <span class="score-item-pct">90%</span>
+        </div>
+        <div class="score-item">
+          <span class="score-item-label">Keyword Alignment</span>
+          <div class="score-bar-wrap"><div class="score-bar-fill" style="width:82%;"></div></div>
+          <span class="score-item-pct">82%</span>
+        </div>
+      </div>
+
+      <div class="skill-tags-preview" aria-label="Matched skills">
+        <span class="ptag">Python</span>
+        <span class="ptag">Machine Learning</span>
+        <span class="ptag">TensorFlow</span>
+        <span class="ptag">SQL</span>
+        <span class="ptag">Spark</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ── -->
+<section class="features" id="features" aria-labelledby="features-heading">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">Features</span>
+      <h2 id="features-heading">Everything you need<br>to screen smarter</h2>
+      <p>From knockout filters to skill gap analysis — TalentScan surfaces the signal in every CV.</p>
+    </div>
+    <div class="features-grid">
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+        </div>
+        <h3>Instant Verdict</h3>
+        <p>HIRE, MAYBE, or REJECT — delivered in seconds with a transparent score and full reasoning you can trust.</p>
+      </div>
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h3>8-Dimension Scorecard</h3>
+        <p>Technical match, achievements, experience, recency, certifications, portfolio, keyword fit, and soft skills — all scored.</p>
+      </div>
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </div>
+        <h3>Skill Gap Analysis</h3>
+        <p>See exactly which must-have skills a candidate has and which are missing — before you read a single line of the CV.</p>
+      </div>
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/>
+          </svg>
+        </div>
+        <h3>PDF CV Upload</h3>
+        <p>Just drag and drop a PDF. TalentScan extracts and interprets the text automatically — no formatting required.</p>
+      </div>
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3>Custom Job Descriptions</h3>
+        <p>Override any built-in role profile by pasting your own job description — perfect for niche or senior positions.</p>
+      </div>
+
+      <div class="glass feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3>Knockout Filter</h3>
+        <p>Candidates missing critical must-have skills are instantly flagged and removed from the pipeline — no wasted time.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how" id="how-it-works" aria-labelledby="how-heading">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">Process</span>
+      <h2 id="how-heading">Three steps to a decision</h2>
+      <p>From upload to verdict in under 30 seconds.</p>
+    </div>
+    <div class="how-steps" role="list">
+      <div class="how-step" role="listitem">
+        <div class="step-num" aria-hidden="true">1</div>
+        <h3>Select a Role</h3>
+        <p>Choose from built-in profiles — Data Scientist, Software Engineer, Product Manager, and more — or paste your own job description.</p>
+      </div>
+      <div class="how-step" role="listitem">
+        <div class="step-num" aria-hidden="true">2</div>
+        <h3>Upload the CV</h3>
+        <p>Drop any PDF candidate CV. TalentScan reads and extracts the content automatically, no manual parsing needed.</p>
+      </div>
+      <div class="how-step" role="listitem">
+        <div class="step-num" aria-hidden="true">3</div>
+        <h3>Get Your Verdict</h3>
+        <p>Review the scored breakdown, matched and missing skills, AI summary, and take action — all from one screen.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Roles ── -->
+<section class="roles" id="roles" aria-labelledby="roles-heading">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">Role Profiles</span>
+      <h2 id="roles-heading">Built for technical hiring</h2>
+      <p>Pre-built profiles with must-have and nice-to-have skills for the most in-demand roles.</p>
+    </div>
+    <div class="roles-grid">
+
+      <div class="glass role-card">
+        <div class="role-icon" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h3>Data Analyst</h3>
+        <div class="role-skills">
+          <span class="role-skill">SQL</span>
+          <span class="role-skill">Excel</span>
+          <span class="role-skill">Data Viz</span>
+          <span class="role-skill">Power BI</span>
+          <span class="role-skill">Tableau</span>
+        </div>
+      </div>
+
+      <div class="glass role-card">
+        <div class="role-icon" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          </svg>
+        </div>
+        <h3>Data Scientist</h3>
+        <div class="role-skills">
+          <span class="role-skill">Python</span>
+          <span class="role-skill">ML</span>
+          <span class="role-skill">TensorFlow</span>
+          <span class="role-skill">SQL</span>
+          <span class="role-skill">Spark</span>
+        </div>
+      </div>
+
+      <div class="glass role-card">
+        <div class="role-icon" style="background:rgba(20,184,166,0.1);border:1px solid rgba(20,184,166,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <h3>Software Engineer</h3>
+        <div class="role-skills">
+          <span class="role-skill">Git</span>
+          <span class="role-skill">DSA</span>
+          <span class="role-skill">Docker</span>
+          <span class="role-skill">AWS</span>
+          <span class="role-skill">CI/CD</span>
+        </div>
+      </div>
+
+      <div class="glass role-card">
+        <div class="role-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/>
+          </svg>
+        </div>
+        <h3>ML Engineer</h3>
+        <div class="role-skills">
+          <span class="role-skill">Python</span>
+          <span class="role-skill">MLflow</span>
+          <span class="role-skill">Kubeflow</span>
+          <span class="role-skill">Airflow</span>
+          <span class="role-skill">Kafka</span>
+        </div>
+      </div>
+
+      <div class="glass role-card">
+        <div class="role-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <h3>Product Manager</h3>
+        <div class="role-skills">
+          <span class="role-skill">Roadmapping</span>
+          <span class="role-skill">Analytics</span>
+          <span class="role-skill">Figma</span>
+          <span class="role-skill">A/B Testing</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-card">
+      <span class="tag" style="margin-bottom:1.25rem;display:inline-flex;">Free to use</span>
+      <h2>Ready to screen smarter?</h2>
+      <p>Upload your first CV and get a verdict in under 30 seconds — no sign-up required.</p>
+      <div class="cta-actions">
+        <a href="#" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Launch TalentScan
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="#" class="footer-brand" aria-label="TalentScan home">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#22C55E" fill-opacity="0.15"/>
+          <path d="M8 16.5L13 21.5L24 10.5" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        TalentScan
+      </a>
+      <p class="footer-copy">AI-powered CV screening. Built with OpenAI &amp; Streamlit.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
