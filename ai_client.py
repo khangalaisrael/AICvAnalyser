@@ -3,6 +3,11 @@ from openai import OpenAI
 from config import OPENAI_API_KEY, OPENAI_MODEL
 from role_profiles import RoleProfile
 
+
+import streamlit as st
+from openai import OpenAI
+
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 _client = OpenAI(api_key=OPENAI_API_KEY)
 
 _SAFE_FALLBACK: dict = {
