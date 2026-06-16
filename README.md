@@ -246,3 +246,6 @@ TalentScan was built as a portfolio project to demonstrate:
 * Real-world recruitment workflow automation
 
 This project showcases how AI can streamline candidate screening while maintaining transparency through structured scoring and explainable recommendations.
+
+<img width="1771" height="871" alt="image" src="https://github.com/user-attachments/assets/cc3a4250-3af9-47c1-abce-f7d906c405c4" />
+<img width="1747" height="823" alt="image" src="https://github.com/user-attachments/assets/3f0d90e9-e544-4bb1-9120-8f3f0f99ed90" />
