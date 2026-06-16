@@ -1,0 +1,22 @@
+# Environment — never commit API keys
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# PDF and image test files — keep CVs off GitHub
+*.pdf
+*.avif
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
