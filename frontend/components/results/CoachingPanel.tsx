@@ -1,0 +1,221 @@
+"use client";
+
+import { useState } from "react";
+import type { CoachingResult, CoachingGap } from "@/lib/types";
+
+interface Props {
+  coaching: CoachingResult | null | undefined;
+}
+
+const TYPE_STYLE: Record<CoachingGap["type"], { bg: string; color: string; label: string }> = {
+  skill:         { bg: "rgba(242,92,84,0.10)",  color: "#f25c54", label: "Skill" },
+  soft_skill:    { bg: "rgba(124,129,139,0.10)", color: "#7c818b", label: "Soft skill" },
+  certification: { bg: "rgba(197,129,28,0.10)",  color: "#c5811c", label: "Cert" },
+  project:       { bg: "rgba(95,139,46,0.10)",   color: "#5f8b2e", label: "Project" },
+};
+
+const IMPACT_DOT: Record<CoachingGap["impact"], string> = {
+  high:   "#f25c54",
+  medium: "#c5811c",
+  low:    "#a7a99f",
+};
+
+const IMPACT_LABEL: Record<CoachingGap["impact"], string> = {
+  high: "High impact",
+  medium: "Medium",
+  low: "Low",
+};
+
+function GapCard({ gap, startExpanded }: { gap: CoachingGap; startExpanded: boolean }) {
+  const [open, setOpen] = useState(startExpanded);
+  const ts = TYPE_STYLE[gap.type] ?? TYPE_STYLE.skill;
+
+  return (
+    <div style={{
+      background: "#fff",
+      border: "1px solid #ecebe3",
+      borderRadius: 14,
+      overflow: "hidden",
+    }}>
+      {/* Header row — always visible, click to toggle */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 10,
+          padding: "14px 16px", background: "none", border: "none",
+          cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+        }}
+      >
+        {/* Type badge */}
+        <span style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+          padding: "3px 8px", borderRadius: 999,
+          background: ts.bg, color: ts.color, flexShrink: 0,
+          textTransform: "uppercase",
+        }}>
+          {ts.label}
+        </span>
+
+        {/* Item name */}
+        <span style={{
+          fontFamily: "var(--font-serif), 'Source Serif 4', serif",
+          fontSize: 14.5, fontWeight: 600, color: "#22272f", flex: 1,
+        }}>
+          {gap.item}
+        </span>
+
+        {/* Impact indicator */}
+        <span style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+          <span style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: IMPACT_DOT[gap.impact],
+          }} />
+          <span style={{ fontSize: 11.5, color: IMPACT_DOT[gap.impact], fontWeight: 600 }}>
+            {IMPACT_LABEL[gap.impact]}
+          </span>
+        </span>
+
+        {/* Chevron */}
+        <svg
+          width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="#a7a99f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          style={{ flexShrink: 0, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {/* Expandable body */}
+      {open && (
+        <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* Reason */}
+          <p style={{ fontSize: 13, color: "#7c818b", margin: 0, lineHeight: 1.5 }}>
+            {gap.reason}
+          </p>
+
+          {/* Action */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <span style={{
+              width: 3, borderRadius: 99, background: ts.color,
+              flexShrink: 0, alignSelf: "stretch",
+            }} />
+            <p style={{ fontSize: 13.5, color: "#22272f", margin: 0, lineHeight: 1.55 }}>
+              {gap.action}
+            </p>
+          </div>
+
+          {/* Rewrite hint */}
+          {gap.rewrite_hint && (
+            <div style={{
+              background: "rgba(242,92,84,0.04)",
+              border: "1px solid rgba(242,92,84,0.20)",
+              borderRadius: 10,
+              padding: "10px 12px",
+            }}>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: "#f25c54", margin: "0 0 5px", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                Rewrite hint
+              </p>
+              <p style={{ fontSize: 13, color: "#22272f", margin: 0, lineHeight: 1.6, fontStyle: "italic" }}>
+                {gap.rewrite_hint}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CoachingPanel({ coaching }: Props) {
+  if (!coaching || !(coaching.priority_gaps?.length || coaching.overall_coaching_summary)) {
+    return null;
+  }
+
+  const gaps = [...(coaching.priority_gaps ?? [])].sort((a, b) => {
+    const order = { high: 0, medium: 1, low: 2 };
+    return (order[a.impact] ?? 1) - (order[b.impact] ?? 1);
+  });
+
+  const quickWins = coaching.quick_wins ?? [];
+  const longerTerm = coaching.longer_term ?? [];
+
+  return (
+    <div style={{ background: "#fbfaf6", border: "1px solid #ecebe3", borderRadius: 16, padding: "22px 24px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: 8,
+          background: "rgba(242,92,84,0.09)",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f25c54" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </div>
+        <p style={{
+          fontFamily: "var(--font-serif), 'Source Serif 4', serif",
+          fontSize: 16, fontWeight: 600, color: "#22272f", margin: 0,
+        }}>
+          CV Coach
+        </p>
+      </div>
+
+      {/* Summary */}
+      {coaching.overall_coaching_summary && (
+        <p style={{ fontSize: 13.5, color: "#52575f", lineHeight: 1.65, margin: "0 0 18px", fontStyle: "italic" }}>
+          {coaching.overall_coaching_summary}
+        </p>
+      )}
+
+      {/* Priority gaps */}
+      {gaps.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: "#a7a99f", letterSpacing: "0.06em", textTransform: "uppercase", margin: "0 0 10px" }}>
+            Priority gaps
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {gaps.map((gap, i) => (
+              <GapCard key={`${gap.type}-${gap.item}-${i}`} gap={gap} startExpanded={i < 2} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick wins + longer term */}
+      {(quickWins.length > 0 || longerTerm.length > 0) && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {quickWins.length > 0 && (
+            <div>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: "#5f8b2e", letterSpacing: "0.06em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                Quick wins
+              </p>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+                {quickWins.map((w, i) => (
+                  <li key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5f8b2e", marginTop: 5, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#22272f", lineHeight: 1.5 }}>{w}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {longerTerm.length > 0 && (
+            <div>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: "#c5811c", letterSpacing: "0.06em", textTransform: "uppercase", margin: "0 0 8px" }}>
+                Longer term
+              </p>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+                {longerTerm.map((l, i) => (
+                  <li key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c5811c", marginTop: 5, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#22272f", lineHeight: 1.5 }}>{l}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

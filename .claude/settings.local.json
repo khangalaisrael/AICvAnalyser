@@ -1,7 +1,74 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(gh --version)"
+      "PowerShell(gh --version)",
+      "Bash(gh repo *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(npm --version)",
+      "PowerShell(npm install -g uipro-cli 2>&1)",
+      "PowerShell(uipro init --ai claude --global 2>&1)",
+      "PowerShell(uipro --help 2>&1)",
+      "PowerShell(uipro init --help 2>&1)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"AI SaaS HR tech recruitment dark mode glassmorphism dashboard\" --design-system -p \"TalentScan\")",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"AI SaaS HR tech recruitment dark mode glassmorphism dashboard\" --design-system -p \"TalentScan\")",
+      "Bash(py .claude/skills/ui-ux-pro-max/scripts/search.py \"AI SaaS HR tech recruitment dark mode glassmorphism dashboard\" --design-system -p \"TalentScan\")",
+      "Bash(py .claude/skills/ui-ux-pro-max/scripts/search.py \"landing page hero social-proof AI SaaS HR\" --domain landing -n 3)",
+      "Bash(streamlit run *)",
+      "PowerShell(\\(Get-Command python -ErrorAction SilentlyContinue\\).Source; \\(Get-Command python3 -ErrorAction SilentlyContinue\\).Source; \\(Get-Command py -ErrorAction SilentlyContinue\\).Source)",
+      "PowerShell(py --version)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(py .claude/skills/ui-ux-pro-max/scripts/search.py \"AI SaaS HR tech recruitment Apple HIG minimal clean white\" --design-system -p \"TalentScan\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8501)",
+      "Bash(git checkout *)",
+      "PowerShell(pip install supabase>=2.0.0 2>&1)",
+      "PowerShell(py -m pip install \"supabase>=2.0.0\" 2>&1)",
+      "Bash(py -c ' *)",
+      "Bash(taskkill //F //IM python.exe //T)",
+      "Bash(taskkill //F //IM streamlit.exe //T)",
+      "PowerShell(python -m pip install \"extra-streamlit-components>=0.1.71\" --quiet)",
+      "PowerShell(python -m pip show extra-streamlit-components 2>&1)",
+      "PowerShell(Get-Command python3, py, streamlit -ErrorAction SilentlyContinue)",
+      "PowerShell(py -m pip install \"extra-streamlit-components>=0.1.71\" --quiet)",
+      "PowerShell(py -m pip show extra-streamlit-components 2>&1)",
+      "Bash(npx impeccable *)",
+      "Bash(node .claude/skills/impeccable/scripts/context.mjs)",
+      "Bash(pip install *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\israe\\\\Downloads\" | Sort-Object Length -Descending | Select-Object -First 20 | ForEach-Object { [PSCustomObject]@{Name=$_.Name; MB=[math]::Round\\($_.Length/1MB,1\\); Type=$_.Extension} } | Format-Table -AutoSize)",
+      "PowerShell(npm cache clean --force 2>&1)",
+      "PowerShell(py -m pip cache purge 2>&1)",
+      "PowerShell(Get-PSDrive C | ForEach-Object { \"Free: $\\([math]::Round\\($_.Free/1GB, 2\\)\\) GB\" })",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\frontend\\\\app\\\\auth\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\frontend\\\\app\\\\dashboard\")",
+      "PowerShell(cd \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\backend\" ; Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\backend\"; py -m uvicorn main:app --reload --port 8000' -WindowStyle Normal ; Write-Output \"Backend started\")",
+      "PowerShell(cd \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\frontend\" ; Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd \"c:\\\\Users\\\\israe\\\\Desktop\\\\AI CV Analyser\\\\frontend\"; npm run dev' -WindowStyle Normal ; Write-Output \"Frontend started\")",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8000/health\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8000/candidates\" -Headers @{Authorization=\"Bearer fake\"} -ErrorAction SilentlyContinue | ConvertTo-Json ; Write-Output \"Exit: $LASTEXITCODE\")",
+      "Bash(npx tsc *)",
+      "Bash(python -c ' *)",
+      "Bash(py -m uvicorn main:app --reload --port 8000)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:8000/docs)"
     ]
-  }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Impeccable design detector: runs after Edit/Write/MultiEdit on UI files and surfaces findings as system reminders."
 }

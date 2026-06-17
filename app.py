@@ -4,8 +4,21 @@ from pdf_processor import extract_text, is_valid_cv_text
 from ai_client import analyse_cv
 from scoring_engine import run_scoring
 from role_profiles import get_role_names, get_profile
-
+from database import save_analysis_to_supabase, fetch_recent_analyses, fetch_full_analysis, delete_analysis
+from supabase_client import supabase, set_supabase_session
 st.set_page_config(page_title="TalentScan", page_icon="🔍", layout="wide")
+
+# Restore Supabase session on every rerun (same tab, keeps session alive across widget interactions)
+if "access_token" in st.session_state:
+    try:
+        set_supabase_session(
+            st.session_state.access_token,
+            st.session_state.get("refresh_token", ""),
+        )
+    except Exception:
+        st.session_state.pop("access_token", None)
+        st.session_state.pop("user", None)
+
 
 # ── Fonts + CSS ───────────────────────────────────────────────────────────────
 st.html("""
@@ -63,9 +76,91 @@ h1,h2,h3,h4{font-family:'Source Serif 4',serif!important;color:#22272f!important
 [data-testid="stSidebar"]>div:first-child{padding:0!important;background:#fbfaf6!important;display:flex!important;flex-direction:column!important;min-height:100vh!important;}
 [data-testid="stSidebarCollapseButton"]{display:none!important;}
 [data-testid="stSidebar"] .stMarkdown p{margin:0;}
+/* ── Sidebar candidate buttons — invisible, renders before card ── */
+[data-testid="stSidebar"] .stButton>button{
+  background:transparent!important;border:none!important;padding:0!important;
+  width:100%!important;box-shadow:none!important;
+  color:transparent!important;font-size:0!important;
+  height:48px!important;cursor:pointer!important;
+  position:relative!important;overflow:visible!important;
+}
+[data-testid="stSidebar"] .stButton>button:hover{background:transparent!important;}
+/* Hover pill — smaller inset rectangle, shifted down from top */
+[data-testid="stSidebar"] .stButton>button::after{
+  content:'';position:absolute;
+  top:11px;bottom:-6px;left:2px;right:2px;
+  border-radius:10px;background:transparent;
+  transition:background .15s;pointer-events:none;
+}
+[data-testid="stSidebar"] .stButton>button:hover::after{
+  background:rgba(0,0,0,0.06)!important;
+}
+/* ── Context menu (right-click / long-press delete) ── */
+#ts-ctx-menu{display:none;position:fixed;background:#fff;border:1px solid #ecebe3;
+  border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:99999;padding:4px;min-width:170px;}
+#ts-ctx-delete{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  font-size:13.5px;font-weight:500;color:#e84a45;border-radius:7px;cursor:pointer;
+  font-family:'Source Sans 3',sans-serif;}
+#ts-ctx-delete:hover{background:#f8dcd7;}
+/* Zero Streamlit gaps so button + card stack with no gap between them */
+[data-testid="stSidebar"] .stVerticalBlock{gap:0!important;}
+[data-testid="stSidebar"] div[data-testid="stButton"]{margin:0!important;padding:0!important;}
+[data-testid="stSidebar"] .stMarkdown{margin:0!important;padding:0!important;}
 </style>
 """)
 
+# ── Context menu JS (right-click on desktop, long-press on mobile) ─────────────
+st.html("""
+<script>
+(function(){
+  if(document.getElementById('ts-ctx-menu'))return;
+  var menu=document.createElement('div');
+  menu.id='ts-ctx-menu';
+  menu.innerHTML='<div id="ts-ctx-delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg> Delete candidate</div>';
+  document.body.appendChild(menu);
+  var activeCid=null;
+  document.getElementById('ts-ctx-delete').addEventListener('click',function(){
+    if(activeCid){var u=new URL(window.location.href);u.searchParams.set('delete_id',activeCid);window.location.href=u.toString();}
+    menu.style.display='none';
+  });
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('#ts-ctx-menu'))menu.style.display='none';
+  });
+  function findCid(btn){
+    var sidebar=document.querySelector('[data-testid="stSidebar"]');
+    if(!sidebar||!sidebar.contains(btn))return null;
+    var allCids=Array.from(sidebar.querySelectorAll('.cid[data-cid]'));
+    for(var i=allCids.length-1;i>=0;i--){
+      if(allCids[i].compareDocumentPosition(btn)&4){return allCids[i].dataset.cid;}
+    }
+    return null;
+  }
+  document.addEventListener('contextmenu',function(e){
+    var btn=e.target.closest('button');
+    if(!btn)return;
+    var cid=findCid(btn);
+    if(!cid)return;
+    e.preventDefault();
+    activeCid=cid;
+    menu.style.cssText='display:block;position:fixed;left:'+e.clientX+'px;top:'+e.clientY+'px;';
+  });
+  var lpTimer=null,lpCid=null,lpPos={x:0,y:0};
+  document.addEventListener('touchstart',function(e){
+    var btn=e.target.closest('button');
+    if(!btn)return;
+    var cid=findCid(btn);
+    if(!cid)return;
+    lpCid=cid;lpPos={x:e.touches[0].clientX,y:e.touches[0].clientY};
+    lpTimer=setTimeout(function(){
+      activeCid=lpCid;
+      menu.style.cssText='display:block;position:fixed;left:'+lpPos.x+'px;top:'+lpPos.y+'px;';
+    },600);
+  },{passive:true});
+  document.addEventListener('touchend',function(){clearTimeout(lpTimer);},{passive:true});
+  document.addEventListener('touchmove',function(){clearTimeout(lpTimer);},{passive:true});
+})();
+</script>
+""")
 
 # ── Design helpers ─────────────────────────────────────────────────────────────
 
@@ -152,6 +247,128 @@ LABELS = {
     "keyword_alignment":         "Keyword alignment",
     "soft_skills":               "Soft skills",
 }
+
+
+# ── Auth page ──────────────────────────────────────────────────────────────────
+
+def _auth_page():
+    # Navigate via HTML link query params (set before rendering)
+    _nav = st.query_params.get("auth_view")
+    if _nav in ("signin", "signup", "reset"):
+        st.session_state.auth_view = _nav
+        st.query_params.clear()
+        st.rerun()
+
+    if "auth_view" not in st.session_state:
+        st.session_state.auth_view = "signin"
+    view = st.session_state.auth_view
+
+    # Header
+    st.markdown("""
+    <div style="max-width:400px;margin:4rem auto 1.5rem;">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#f25c54;flex:0 0 auto;
+                    display:flex;align-items:center;justify-content:center;
+                    box-shadow:0 2px 8px rgba(242,92,84,.35);">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <span style="font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;
+                     letter-spacing:-.01em;color:#22272f;">TalentScan</span>
+      </div>
+      <p style="color:#7c818b;font-size:14px;margin:0;">AI-powered CV screening for recruiters.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+
+        if view == "signin":
+            st.markdown('<p style="font-family:\'Source Serif 4\',serif;font-size:20px;font-weight:600;color:#22272f;margin:0 0 14px;">Sign in</p>', unsafe_allow_html=True)
+            email    = st.text_input("Email",    key="li_email", placeholder="you@company.com")
+            password = st.text_input("Password", key="li_pw", type="password", placeholder="••••••••")
+            if st.button("Sign in", type="primary", use_container_width=True, key="li_btn"):
+                if not email or not password:
+                    st.error("Please enter your email and password.")
+                else:
+                    try:
+                        res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                        st.session_state.user          = res.user
+                        st.session_state.access_token  = res.session.access_token
+                        st.session_state.refresh_token = res.session.refresh_token
+                        st.rerun()
+                    except Exception:
+                        st.error("Sign in failed. Check your email and password.")
+            st.markdown("""
+            <div style="margin-top:16px;border-top:1px solid #ecebe3;padding-top:16px;
+                        display:flex;flex-direction:column;gap:8px;">
+              <a href="?auth_view=signup" style="font-size:13px;color:#7c818b;text-decoration:none;">
+                Don't have an account?&nbsp;
+                <span style="text-decoration:underline;color:#22272f;font-weight:600;">Create one</span>
+              </a>
+              <a href="?auth_view=reset" style="font-size:13px;color:#7c818b;text-decoration:none;">
+                Forgot your password?&nbsp;
+                <span style="text-decoration:underline;color:#22272f;font-weight:600;">Reset it</span>
+              </a>
+            </div>
+            """, unsafe_allow_html=True)
+
+        elif view == "signup":
+            st.markdown('<p style="font-family:\'Source Serif 4\',serif;font-size:20px;font-weight:600;color:#22272f;margin:0 0 14px;">Create account</p>', unsafe_allow_html=True)
+            email   = st.text_input("Email",            key="su_email",   placeholder="you@company.com")
+            pw      = st.text_input("Password",         key="su_pw",      type="password", placeholder="Min 6 characters")
+            confirm = st.text_input("Confirm password", key="su_confirm", type="password", placeholder="Repeat password")
+            if st.button("Create account", type="primary", use_container_width=True, key="su_btn"):
+                if not email or not pw or not confirm:
+                    st.error("Please fill in all fields.")
+                elif pw != confirm:
+                    st.error("Passwords don't match.")
+                elif len(pw) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    try:
+                        res = supabase.auth.sign_up({"email": email, "password": pw})
+                        if res.user and res.session:
+                            st.session_state.user          = res.user
+                            st.session_state.access_token  = res.session.access_token
+                            st.session_state.refresh_token = res.session.refresh_token
+                            st.rerun()
+                        elif res.user:
+                            st.success("Account created! Check your email to confirm it, then sign in.")
+                            st.session_state.auth_view = "signin"
+                    except Exception as e:
+                        st.error(f"Sign up failed: {e}")
+            st.markdown("""
+            <div style="margin-top:16px;border-top:1px solid #ecebe3;padding-top:16px;">
+              <a href="?auth_view=signin" style="font-size:13px;color:#7c818b;text-decoration:none;">
+                Already have an account?&nbsp;
+                <span style="text-decoration:underline;color:#22272f;font-weight:600;">Sign in</span>
+              </a>
+            </div>
+            """, unsafe_allow_html=True)
+
+        elif view == "reset":
+            st.markdown('<p style="font-family:\'Source Serif 4\',serif;font-size:20px;font-weight:600;color:#22272f;margin:0 0 6px;">Reset password</p>', unsafe_allow_html=True)
+            st.markdown('<p style="font-size:13.5px;color:#7c818b;margin:0 0 14px;">Enter your account email and we\'ll send you a reset link.</p>', unsafe_allow_html=True)
+            email = st.text_input("Email", key="rp_email", placeholder="you@company.com")
+            if st.button("Send reset link", type="primary", use_container_width=True, key="rp_btn"):
+                if not email:
+                    st.error("Please enter your email.")
+                else:
+                    try:
+                        supabase.auth.reset_password_for_email(email)
+                        st.success("Reset link sent — check your inbox.")
+                    except Exception as e:
+                        st.error(f"Could not send reset email: {e}")
+            st.markdown("""
+            <div style="margin-top:16px;border-top:1px solid #ecebe3;padding-top:16px;">
+              <a href="?auth_view=signin" style="font-size:13px;color:#7c818b;text-decoration:none;">
+                ←&nbsp;<span style="text-decoration:underline;color:#22272f;font-weight:600;">Back to sign in</span>
+              </a>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # ── Report view ────────────────────────────────────────────────────────────────
@@ -339,7 +556,7 @@ def _dashboard_view(ai: dict, sc: dict, role: str) -> None:
 # ── Results wrapper ────────────────────────────────────────────────────────────
 
 def _display_results(ai: dict, sc: dict, role: str) -> None:
-    hc, tc = st.columns([2, 1])
+    hc, tc, xc = st.columns([2, 1, 0.3])
     with hc:
         st.markdown('<h2 style="font-family:\'Source Serif 4\',serif;font-size:22px;font-weight:600;margin:0;color:#22272f;">Analysis results</h2>', unsafe_allow_html=True)
     with tc:
@@ -348,6 +565,11 @@ def _display_results(ai: dict, sc: dict, role: str) -> None:
             default="Report view", key="view_toggle",
             label_visibility="collapsed",
         )
+    with xc:
+        if st.button("✕", key="close_results", help="Close results"):
+            st.session_state.pop("last_result", None)
+            st.session_state.pop("active_candidate_id", None)
+            st.rerun()
 
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
     if (view or "Report view") == "Report view":
@@ -356,12 +578,50 @@ def _display_results(ai: dict, sc: dict, role: str) -> None:
         _dashboard_view(ai, sc, role)
 
 
+@st.cache_data(ttl=60)
+def _cached_candidates(user_id: str):
+    return fetch_recent_analyses(user_id, limit=15)
+
+
+# ── Auth gate ──────────────────────────────────────────────────────────────────
+if "user" not in st.session_state:
+    _auth_page()
+    st.stop()
+
+_uid = st.session_state.user.id
+
 # Flush any pending candidate added during last run_clicked pass
 if "pending_candidate" in st.session_state:
     _entry = st.session_state.pop("pending_candidate")
     _existing = st.session_state.get("candidates", [])
     if not any(c["name"] == _entry["name"] and c["role"] == _entry["role"] for c in _existing):
         st.session_state.candidates = _existing + [_entry]
+
+# Load candidates from Supabase on fresh page load (cached — no DB hit on every rerun)
+if "candidates" not in st.session_state:
+    try:
+        st.session_state.candidates = _cached_candidates(_uid)
+    except Exception:
+        st.session_state.candidates = []
+
+# Handle right-click / long-press delete (candidate ID passed via URL query param)
+_del_id = st.query_params.get("delete_id")
+if _del_id:
+    try:
+        delete_analysis(_del_id)
+        st.session_state.candidates = [
+            c for c in st.session_state.get("candidates", [])
+            if c.get("id") != _del_id
+        ]
+        if st.session_state.get("active_candidate_id") == _del_id:
+            st.session_state.pop("last_result", None)
+            st.session_state.pop("active_candidate_id", None)
+        _cached_candidates.clear()
+    except Exception:
+        pass
+    st.query_params.clear()
+    st.rerun()
+
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -401,13 +661,18 @@ with st.sidebar:
 
     # Candidates list
     if candidates:
-        for i, c in enumerate(reversed(candidates)):
-            is_active = i == 0
+        active_id = st.session_state.get("active_candidate_id")
+        for c in candidates:
+            is_active = c.get("id") == active_id
             row_bg = "#fdecea" if is_active else "transparent"
-            dot_color = _band(c["score"])["fill"]
+            score_color = _band(c["score"])["fill"]
+            if c.get("id"):
+                st.markdown(f'<span class="cid" data-cid="{c["id"]}" style="display:none"></span>', unsafe_allow_html=True)
+            clicked = c.get("id") and st.button(" ", key=f"cand_{c['id']}", use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex;align-items:center;gap:11px;padding:8px 16px;
-                        background:{row_bg};cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:11px;padding:8px 12px;
+                        background:{row_bg};
+                        margin-top:-48px;pointer-events:none;position:relative;">
               <span style="width:32px;height:32px;flex:0 0 auto;border-radius:9px;
                            background:#f0eee6;display:flex;align-items:center;justify-content:center;
                            font-size:12px;font-weight:700;color:#6b7078;font-family:'Source Sans 3',sans-serif;">
@@ -422,10 +687,18 @@ with st.sidebar:
                   {c['role']}
                 </div>
               </div>
-              <span style="font-size:12.5px;font-weight:700;color:{dot_color};
-                           font-family:'Source Serif 4',serif;">{c['score']}</span>
+              <span style="font-size:12.5px;font-weight:700;color:{score_color};
+                           font-family:'Source Serif 4',serif;flex-shrink:0;">{c['score']}</span>
             </div>
             """, unsafe_allow_html=True)
+            if clicked:
+                try:
+                    result = fetch_full_analysis(c["id"])
+                    st.session_state.last_result = result
+                    st.session_state.active_candidate_id = c["id"]
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not load candidate: {e}")
     else:
         st.markdown("""
         <div style="padding:8px 16px;">
@@ -438,26 +711,28 @@ with st.sidebar:
     # Spacer pushes footer to bottom
     st.markdown('<div style="flex:1;min-height:40px;"></div>', unsafe_allow_html=True)
 
-    # Footer
-    st.markdown("""
-    <div style="border-top:1px solid #ecebe3;padding:12px 16px 16px;margin-top:16px;
-                display:flex;flex-direction:column;gap:2px;font-family:'Source Sans 3',sans-serif;">
-      <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;
-                  color:#6b7078;font-weight:500;font-size:14px;cursor:pointer;">
-        <span style="width:7px;height:7px;border-radius:99px;background:#cfcdc2;display:inline-block;"></span>
-        Settings
-      </div>
-      <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;cursor:pointer;">
-        <span style="width:30px;height:30px;flex:0 0 auto;border-radius:99px;background:#dfe7d2;
-                     display:flex;align-items:center;justify-content:center;
-                     font-size:11px;font-weight:700;color:#4d6b22;">RB</span>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#22272f;">Recruiter</div>
-          <div style="font-size:11px;color:#a7a99f;">CVScan</div>
-        </div>
+    # ── Footer ────────────────────────────────────────────────────────────────
+    _u = st.session_state.user
+    _email = _u.email or ""
+    _initials = (_email[0].upper() if _email else "U")
+
+    st.markdown(f"""
+    <div style="border-top:1px solid #ecebe3;padding:12px 14px 8px;margin-top:16px;
+                display:flex;align-items:center;gap:11px;font-family:'Source Sans 3',sans-serif;">
+      <span style="width:30px;height:30px;flex:0 0 auto;border-radius:99px;background:#dfe7d2;
+                   display:flex;align-items:center;justify-content:center;
+                   font-size:11px;font-weight:700;color:#4d6b22;">{_initials}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#22272f;white-space:nowrap;
+                    overflow:hidden;text-overflow:ellipsis;">{_email}</div>
+        <div style="font-size:11px;color:#a7a99f;">Recruiter</div>
       </div>
     </div>
     """, unsafe_allow_html=True)
+    if st.button("Sign out", use_container_width=True, key="signout_btn"):
+        supabase.auth.sign_out()
+        st.session_state.clear()
+        st.rerun()
 
 left, right = st.columns([1, 1.6], gap="large")
 
@@ -488,7 +763,10 @@ with left:
 
     st.markdown('<div style="border-top:1px solid #f1efe7;margin:16px 0 8px;"></div>', unsafe_allow_html=True)
     st.markdown('<p style="font-size:13px;font-weight:700;color:#52575f;margin:0 0 8px;">Upload candidate CV <span style="font-weight:500;color:#a7a99f;">(PDF)</span></p>', unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("CV", type=["pdf"], label_visibility="collapsed")
+    if "uploader_key" not in st.session_state:
+        st.session_state.uploader_key = 0
+    uploaded_file = st.file_uploader("CV", type=["pdf"], label_visibility="collapsed",
+                                     key=f"cv_{st.session_state.uploader_key}")
 
     st.markdown('<div style="height:4px;"></div>', unsafe_allow_html=True)
     run_clicked = st.button(
@@ -535,18 +813,40 @@ with right:
             st.stop()
         with st.spinner("Calculating score…"):
             scoring = run_scoring(ai_result, role_profile)
-        st.session_state.last_result = {"ai": ai_result, "scoring": scoring, "role": selected_role}
 
-        # Queue candidate for sidebar (flushed at top of next run)
         fname = uploaded_file.name.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").title()
         initials = "".join(w[0] for w in fname.split()[:2]).upper() or "CV"
+
+        saved_id = None
+        try:
+            db_result = save_analysis_to_supabase(
+                user_id=_uid,
+                role=selected_role,
+                scoring=scoring,
+                ai_result=ai_result,
+                candidate_name=fname,
+            )
+            saved_id = db_result.data[0]["id"] if db_result.data else None
+        except Exception as e:
+            st.warning(f"Could not save to database: {e}")
+
+        st.session_state.last_result = {"ai": ai_result, "scoring": scoring, "role": selected_role}
+        st.session_state.active_candidate_id = saved_id
+        _cached_candidates.clear()       # force sidebar to reload from DB next run
+
+        # Queue candidate for sidebar (flushed at top of next run)
         st.session_state.pending_candidate = {
+            "id": saved_id,
             "name": fname, "role": selected_role,
             "score": scoring["final_score"], "verdict": scoring["verdict"],
             "initials": initials,
         }
+        st.session_state.uploader_key += 1  # clears the file uploader
         st.rerun()
 
     elif "last_result" in st.session_state:
         r = st.session_state.last_result
         _display_results(r["ai"], r["scoring"], r["role"])
+
+
+
