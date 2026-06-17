@@ -13,21 +13,21 @@ async function getAuthHeader(): Promise<Record<string, string>> {
 
 export async function analyseCv(
   file: File,
-  role: string,
   customJd?: string,
-  mode: "role" | "aspiring" | "apply" = "role",
+  mode: "aspiring" | "apply" = "aspiring",
+  userMode: "job_seeker" | "professional" = "job_seeker",
 ): Promise<CandidateDetail> {
   const headers = await getAuthHeader();
   const form = new FormData();
   form.append("file", file);
-  form.append("role", role);
+  form.append("role", "");
   form.append("mode", mode);
+  form.append("user_mode", userMode);
   if (customJd?.trim()) form.append("custom_jd", customJd.trim());
 
   const res = await fetch(`${API_URL}/analyse`, { method: "POST", headers, body: form });
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  // Normalise: API returns { id, candidate_name, role, ai, scoring, researched_role? }
   return {
     id: data.id,
     candidate_name: data.candidate_name ?? "",
@@ -36,6 +36,8 @@ export async function analyseCv(
     scoring: data.scoring,
     pipeline_status: null,
     researched_role: data.researched_role ?? undefined,
+    cv_checklist: data.cv_checklist ?? undefined,
+    user_mode: data.user_mode ?? undefined,
   };
 }
 

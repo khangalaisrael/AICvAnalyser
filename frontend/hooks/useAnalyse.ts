@@ -9,10 +9,17 @@ export function useAnalyse() {
   const { setActiveCandidateId } = useAppStore();
 
   return useMutation({
-    mutationFn: ({ file, role, customJd, mode }: { file: File; role: string; customJd?: string; mode?: "role" | "aspiring" | "apply" }) =>
-      analyseCv(file, role, customJd, mode ?? "role"),
+    mutationFn: ({
+      file, customJd, mode, userMode,
+    }: {
+      file: File;
+      customJd?: string;
+      mode?: "aspiring" | "apply";
+      userMode?: "job_seeker" | "professional";
+    }) => analyseCv(file, customJd, mode ?? "aspiring", userMode ?? "job_seeker"),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["candidates"] });
+      queryClient.setQueryData(["candidates", data.id], data);
       setActiveCandidateId(data.id);
     },
   });

@@ -12,7 +12,7 @@ from services.ai_client import (
     _parse_experience_years,
 )
 from services.database import save_analysis_to_supabase
-from services.pdf_processor import extract_text, is_valid_cv_text
+from services.pdf_processor import extract_text, is_valid_cv_text, check_cv_quality
 from services.role_profiles import RoleProfile, get_profile
 from services.scoring_engine import run_scoring
 
@@ -21,10 +21,13 @@ router = APIRouter()
 
 def _profile_from_ai(ai_result: dict) -> RoleProfile:
     """Build a minimal RoleProfile from an AI result (used for raw-JD mode)."""
+    seniority = ai_result.get("seniority_level", "Mid-level")
+    # Entry-level: 0 years is expected — don't set a floor that causes an experience flag
+    min_exp = 0 if seniority == "Entry-level" else max(1, ai_result.get("years_experience", 1))
     return {
         "must_have": [],
         "nice_to_have": [],
-        "min_experience_years": max(1, ai_result.get("years_experience", 1)),
+        "min_experience_years": min_exp,
     }
 
 
@@ -34,6 +37,7 @@ async def analyse(
     role: str = Form(None),
     custom_jd: str = Form(None),
     mode: str = Form("role"),
+    user_mode: str = Form("job_seeker"),
     user_id: str = Depends(get_current_user),
 ):
     if mode in ("aspiring", "apply") and not custom_jd:
@@ -54,7 +58,7 @@ async def analyse(
 
     if mode == "apply" and custom_jd:
         # Direct JD match — no research step, AI extracts role inline
-        ai_result = analyse_cv_with_raw_jd(cv_text, custom_jd.strip())
+        ai_result = analyse_cv_with_raw_jd(cv_text, custom_jd.strip(), user_mode)
         effective_role = ai_result.pop("_role_title", "Custom Role")
         profile = _profile_from_ai(ai_result)
 
@@ -67,10 +71,13 @@ async def analyse(
 
         profile: RoleProfile = {
             "must_have": researched_role_data.get("required_skills", [])[:10],
+            "strongly_expected": [],
             "nice_to_have": researched_role_data.get("nice_to_have_skills", [])[:10],
+            "competitive_advantage": researched_role_data.get("competitive_advantage_skills", [])[:10],
+            "relevant_certifications": researched_role_data.get("certifications_or_qualifications", [])[:5],
             "min_experience_years": _parse_experience_years(researched_role_data.get("experience_years", "1")),
         }
-        ai_result = analyse_cv_with_research(cv_text, researched_role_data)
+        ai_result = analyse_cv_with_research(cv_text, researched_role_data, user_mode)
         effective_role = researched_role_data.get("role_title") or "Custom Role"
 
     else:
@@ -78,7 +85,7 @@ async def analyse(
         profile = get_profile(role)
         if not profile:
             raise HTTPException(status_code=400, detail=f"Unknown role: {role}")
-        ai_result = analyse_cv(cv_text, role, profile)
+        ai_result = analyse_cv(cv_text, role, profile, user_mode)
         effective_role = role
 
     scoring = run_scoring(ai_result, profile)
@@ -98,6 +105,8 @@ async def analyse(
             ai_result["coaching"] = coaching
 
     candidate_name = (file.filename or "").removesuffix(".pdf").replace("_", " ").replace("-", " ").strip()
+    cv_checklist = check_cv_quality(cv_text)
+
     row_id = save_analysis_to_supabase(
         user_id, effective_role, scoring, ai_result, candidate_name, researched_role_data
     )
@@ -108,6 +117,8 @@ async def analyse(
         "scoring": scoring,
         "role": effective_role,
         "candidate_name": candidate_name,
+        "cv_checklist": cv_checklist,
+        "user_mode": user_mode,
     }
     if researched_role_data:
         resp["researched_role"] = researched_role_data

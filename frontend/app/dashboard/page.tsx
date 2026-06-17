@@ -1,31 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAppStore } from "@/store/appStore";
 import { useAnalyse } from "@/hooks/useAnalyse";
-import { RoleSelector } from "@/components/upload/RoleSelector";
 import { PdfDropzone } from "@/components/upload/PdfDropzone";
 import { JobDescriptionInput } from "@/components/upload/JobDescriptionInput";
 import { AnalyseButton } from "@/components/upload/AnalyseButton";
 import { ResultsPanel } from "@/components/results/ResultsPanel";
 
-type Mode = "role" | "aspiring" | "apply";
+type Mode = "aspiring" | "apply";
+type UserMode = "job_seeker" | "professional";
 
 const STEPS: Record<Mode, string[]> = {
-  role:     ["Analysing CV...", "Scoring results...", "Building feedback..."],
   aspiring: ["Researching role...", "Coaching your CV...", "Scoring results..."],
   apply:    ["Reading job listing...", "Matching CV...", "Scoring results..."],
 };
 
-const TABS: { id: Mode; label: string; sub: string }[] = [
-  { id: "role",     label: "Quick match",  sub: "Pick a role" },
-  { id: "aspiring", label: "Aspiring",     sub: "I want to become..." },
-  { id: "apply",    label: "Applying",     sub: "I have a listing" },
+const TABS: { id: Mode; label: string }[] = [
+  { id: "aspiring", label: "Aspiring" },
+  { id: "apply",    label: "Applying" },
+];
+
+const USER_MODE_OPTIONS: { id: UserMode; label: string; sub: string }[] = [
+  { id: "job_seeker",   label: "Job hunting",   sub: "Land your next role" },
+  { id: "professional", label: "Professional",  sub: "Stay ahead at work" },
 ];
 
 export default function DashboardPage() {
-  const { selectedRole } = useAppStore();
-  const [mode, setMode] = useState<Mode>("role");
+  const [mode, setMode] = useState<Mode>("aspiring");
+  const [userMode, setUserMode] = useState<UserMode>("job_seeker");
   const [file, setFile] = useState<File | null>(null);
   const [aspiringText, setAspiringText] = useState("");
   const [applyJd, setApplyJd] = useState("");
@@ -40,20 +42,16 @@ export default function DashboardPage() {
 
   const canAnalyse =
     !!file &&
-    (mode === "role"
-      ? !!selectedRole
-      : mode === "aspiring"
-      ? aspiringText.trim().length > 0
-      : applyJd.trim().length > 0);
+    (mode === "aspiring" ? aspiringText.trim().length > 0 : applyJd.trim().length > 0);
 
   function handleAnalyse() {
     if (!canAnalyse) return;
     setStep(0);
     analyse.mutate({
       file: file!,
-      role: selectedRole,
-      customJd: mode === "aspiring" ? aspiringText : mode === "apply" ? applyJd : undefined,
+      customJd: mode === "aspiring" ? aspiringText : applyJd,
       mode,
+      userMode,
     });
   }
 
@@ -78,7 +76,7 @@ export default function DashboardPage() {
         padding: "28px 24px",
         display: "flex",
         flexDirection: "column",
-        gap: 24,
+        gap: 20,
         background: "#fff",
       }}>
         <div>
@@ -93,9 +91,37 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* 3-mode toggle */}
+        {/* User mode toggle */}
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#a7a99f", letterSpacing: "0.06em", textTransform: "uppercase", margin: "0 0 8px" }}>
+            I am currently
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+            {USER_MODE_OPTIONS.map(({ id, label, sub }) => (
+              <button
+                key={id}
+                onClick={() => setUserMode(id)}
+                style={{
+                  padding: "10px 10px",
+                  borderRadius: 10,
+                  border: userMode === id ? "1.5px solid #f25c54" : "1.5px solid #ecebe3",
+                  background: userMode === id ? "rgba(242,92,84,0.05)" : "#fafaf7",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+              >
+                <p style={{ fontSize: 12.5, fontWeight: 700, color: userMode === id ? "#f25c54" : "#22272f", margin: "0 0 1px" }}>{label}</p>
+                <p style={{ fontSize: 11, color: "#a7a99f", margin: 0 }}>{sub}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2-mode toggle */}
         <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
+          display: "grid", gridTemplateColumns: "1fr 1fr",
           background: "#f3f2ec", borderRadius: 10, padding: 3, gap: 2,
         }}>
           {TABS.map(({ id, label }) => (
@@ -110,10 +136,6 @@ export default function DashboardPage() {
                 cursor: "pointer", fontFamily: "inherit",
                 boxShadow: mode === id ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                 transition: "background 0.15s, color 0.15s, box-shadow 0.15s",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                padding: "0 6px",
               }}
             >
               {label}
@@ -121,8 +143,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Conditional input per mode */}
-        {mode === "role" && <RoleSelector />}
         {mode === "aspiring" && (
           <JobDescriptionInput
             value={aspiringText}
