@@ -193,12 +193,28 @@ function StepReview({ ledger, atsBefore, onNext, loading, role }: {
       </div>
 
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD, overflow: "hidden", marginBottom: 20 }}>
-        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}` }}>
-          <SectionLabel>Contact</SectionLabel>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: FG }}>{ledger.contact.name || "—"}</p>
-          <p style={{ margin: "2px 0 0", fontSize: 13, color: MUTED }}>
-            {[ledger.contact.email, ledger.contact.phone, ledger.contact.location].filter(Boolean).join(" · ")}
-          </p>
+        <div style={{ padding: "20px 24px", borderBottom: `1px solid ${BORDER}` }}>
+          <SectionLabel>Identity</SectionLabel>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            {/* Initial avatar */}
+            <div style={{
+              width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+              background: "linear-gradient(135deg, #1d3557 0%, #2a4a7a 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: "white", lineHeight: 1 }}>
+                {(ledger.contact.name || "?")[0].toUpperCase()}
+              </span>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: FG, letterSpacing: "-0.01em" }}>
+                {ledger.contact.name || "—"}
+              </p>
+              <p style={{ margin: "5px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
+                {[ledger.contact.email, ledger.contact.phone, ledger.contact.location].filter(Boolean).join("  ·  ")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {ledger.summary && (
@@ -241,13 +257,22 @@ function StepReview({ ledger, atsBefore, onNext, loading, role }: {
         )}
 
         {ledger.skills.length > 0 && (
-          <div style={{ padding: "14px 20px" }}>
-            <SectionLabel>Skills ({ledger.skills.length})</SectionLabel>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div style={{ padding: "18px 24px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <SectionLabel>Skills</SectionLabel>
+              <span style={{
+                fontSize: 11, fontWeight: 700, color: FG,
+                background: "#f0efe7", borderRadius: 99, padding: "2px 9px",
+              }}>{ledger.skills.length}</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {ledger.skills.map((s, i) => (
                 <span key={i} style={{
-                  fontSize: 12, color: MUTED, background: "#f5f4ef",
-                  border: `1px solid ${BORDER}`, borderRadius: 99, padding: "3px 10px",
+                  fontSize: 12.5, fontWeight: 500, color: FG,
+                  background: "#f5f4ef", border: `1px solid ${BORDER}`,
+                  borderRadius: 8, padding: "5px 12px",
+                  letterSpacing: "-0.01em",
+                  transition: "background 0.12s",
                 }}>{s}</span>
               ))}
             </div>

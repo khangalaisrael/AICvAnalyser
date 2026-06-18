@@ -287,6 +287,94 @@ function GapsFeatureMock() {
   );
 }
 
+function TrendingFeatureMock() {
+  const bullets = [
+    "Demand for AI-native PMs up 34% vs. last quarter in this market",
+    "SQL / data proficiency now cited in 8 of 10 postings for this role",
+    "Remote-first roles declining; hybrid positions growing across EMEA",
+  ];
+  const trending = ["AI/ML product thinking", "Data & SQL", "LLM integration", "GenAI roadmapping", "Prompt engineering"];
+  return (
+    <MockCard>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{
+          width: 28, height: 28, borderRadius: 8,
+          background: "rgba(197,129,28,0.12)",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c5811c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
+          </svg>
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>What the market wants right now</div>
+      </div>
+      <div style={{ fontSize: 11, color: MUTED, marginBottom: 14 }}>Senior PM · London · 47 live postings</div>
+      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
+      {bullets.map((line, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 9, alignItems: "flex-start" }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#c5811c", marginTop: 6, flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.6 }}>{line}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: MUTED, marginBottom: 8 }}>
+          Skills to watch
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+          {trending.map((t) => (
+            <span key={t} style={{
+              fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 6,
+              background: "rgba(197,129,28,0.09)", color: "#8c6113",
+            }}>{t}</span>
+          ))}
+        </div>
+      </div>
+    </MockCard>
+  );
+}
+
+function InferredSkillsMock() {
+  const matched = ["Product strategy", "Stakeholder mgmt", "Agile / Scrum", "Roadmapping"];
+  const inferred = ["Data analysis", "User research", "KPI ownership"];
+  return (
+    <MockCard>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#5f8b2e" }} />
+        <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Matched</span>
+        <span style={{
+          fontSize: 11, fontWeight: 700, color: "#5f8b2e",
+          background: "rgba(95,139,46,0.12)", borderRadius: 99, padding: "2px 8px",
+        }}>{matched.length}</span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 18 }}>
+        {matched.map((s) => (
+          <span key={s} style={{
+            fontSize: 12, fontWeight: 500, padding: "5px 12px", borderRadius: 99,
+            background: "rgba(95,139,46,0.10)", color: "#437a1a",
+          }}>{s}</span>
+        ))}
+      </div>
+      <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: MUTED, marginBottom: 10 }}>
+          Inferred from your CV
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 10 }}>
+          {inferred.map((s) => (
+            <span key={s} style={{
+              fontSize: 12, fontWeight: 500, padding: "5px 12px", borderRadius: 99,
+              background: "rgba(95,139,46,0.07)", color: "#5f8b2e",
+              border: "1px dashed rgba(95,139,46,0.35)",
+            }}>{s}</span>
+          ))}
+        </div>
+        <p style={{ fontSize: 11.5, color: MUTED, fontStyle: "italic", lineHeight: 1.55, margin: 0 }}>
+          Skills we deduced you have — even when not explicitly listed.
+        </p>
+      </div>
+    </MockCard>
+  );
+}
+
 function RewriteFeatureMock() {
   return (
     <MockCard>
@@ -675,6 +763,19 @@ export default function LandingPage() {
           headline="Gaps from live postings, not guesswork."
           body={`"9 of 10 current postings for this role mention SQL. Your CV doesn't mention it." That's actionable. Every gap is grounded in real listings for the specific role you entered.`}
           mock={<GapsFeatureMock />}
+        />
+        <FeatureSection
+          eyebrow="Inferred skills"
+          headline="Skills you have — even when you didn't say so."
+          body="We read between the lines. If your CV describes managing a data pipeline but doesn't list SQL, we flag it as inferred — so you know what you can confidently claim and what to make explicit."
+          mock={<InferredSkillsMock />}
+          flip
+        />
+        <FeatureSection
+          eyebrow="Market intelligence"
+          headline="What the market is actually hiring for."
+          body="Not generic advice — live signal from current postings. We tell you which skills are trending for your target role right now, so you know what's worth adding before you apply."
+          mock={<TrendingFeatureMock />}
         />
         <FeatureSection
           eyebrow="CV rewrite"
