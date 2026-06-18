@@ -375,46 +375,6 @@ function InferredSkillsMock() {
   );
 }
 
-function RewriteFeatureMock() {
-  return (
-    <MockCard>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 8 }}>
-          Before
-        </div>
-        <div style={{
-          fontSize: 12.5, color: "#999", lineHeight: 1.6,
-          textDecoration: "line-through", background: "#f5f4ef",
-          borderRadius: 6, padding: "8px 10px",
-        }}>
-          Managed a team of engineers and delivered the project on time.
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-        <div style={{ flex: 1, height: 1, background: BORDER }} />
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path d="M7 2v10M3 9l4 4 4-4" stroke={MUTED} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <div style={{ flex: 1, height: 1, background: BORDER }} />
-      </div>
-      <div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#437a1a", marginBottom: 8 }}>
-          After
-        </div>
-        <div style={{
-          fontSize: 12.5, color: INK, lineHeight: 1.6,
-          background: "rgba(67,122,26,0.06)", borderLeft: "2px solid #7db83a",
-          borderRadius: "0 6px 6px 0", padding: "8px 10px",
-        }}>
-          Led 6-person engineering team to deliver payment API gateway — reduced checkout latency by 40% across 3 markets.
-        </div>
-        <div style={{ fontSize: 10.5, color: MUTED, marginTop: 8, fontStyle: "italic" }}>
-          Every change traces to your original. Nothing invented.
-        </div>
-      </div>
-    </MockCard>
-  );
-}
 
 /* ── feature section layout ─────────────────────────────────────────────── */
 
@@ -588,7 +548,7 @@ export default function LandingPage() {
               transition={{ duration: 0.6, delay: 0.18, ease: "easeOut" }}
               style={{ fontSize: 17, color: MUTED, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}
             >
-              Enter a role, upload your CV. TalentScan scores it against live postings, flags ATS problems, surfaces the skill gaps — and rewrites it into a clean, downloadable PDF.
+              Enter a role, upload your CV. TalentScan scores it against live postings, flags ATS problems, and surfaces the exact skill gaps standing between you and the job.
             </motion.p>
 
             <motion.div
@@ -701,8 +661,8 @@ export default function LandingPage() {
               },
               {
                 n: "03",
-                title: "Download a rewritten CV",
-                body: "We reframe your real experience in the role's language and generate a clean, ATS-safe PDF. Nothing invented — every change traces back to your original CV.",
+                title: "Get your full breakdown",
+                body: "Match score, ATS flags, skill gaps, inferred skills, and live market trends — all in one report. Know exactly what to fix before you apply.",
               },
             ].map((step, i) => (
               <FadeUp key={step.n} delay={i * 0.1}>
@@ -761,13 +721,6 @@ export default function LandingPage() {
           headline="What the market is actually hiring for."
           body="Not generic advice — live signal from current postings. We tell you which skills are trending for your target role right now, so you know what's worth adding before you apply."
           mock={<TrendingFeatureMock />}
-        />
-        <FeatureSection
-          eyebrow="CV rewrite"
-          headline="Your experience, in the role's language."
-          body="We rewrite every bullet to mirror the target role's vocabulary — using only what's already in your CV. Every change traces to your original. Nothing is invented, nothing is removed."
-          mock={<RewriteFeatureMock />}
-          flip
         />
       </div>
 

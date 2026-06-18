@@ -17,7 +17,7 @@ const sourceSerif = Source_Serif_4({
 
 export const metadata: Metadata = {
   title: "TalentScan — Know where your CV stands",
-  description: "Score your CV against live job postings, catch ATS problems, close skill gaps, and download a clean rewrite. Free.",
+  description: "Score your CV against live job postings, catch ATS problems, and close skill gaps before you apply. Free.",
 };
 
 export default function RootLayout({

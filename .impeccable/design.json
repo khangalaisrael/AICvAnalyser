@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-17T00:00:00.000Z",
+  "title": "Design System: TalentScan",
+  "extensions": {
+    "colorMeta": {
+      "coral-confidence": {
+        "role": "primary",
+        "displayName": "Coral Confidence",
+        "canonical": "oklch(62% 0.21 22)",
+        "tonalRamp": ["#4a0500", "#7a1208", "#a51e10", "#ce3525", "#f25c54", "#f78d88", "#f8b9b6", "#fde8e7"]
+      },
+      "bg-canvas": {
+        "role": "neutral",
+        "displayName": "Canvas Cream",
+        "canonical": "oklch(97.5% 0.007 80)",
+        "tonalRamp": ["#2c2b28", "#4e4d48", "#726f66", "#9b9890", "#c2bfb6", "#d9d6cd", "#ecebe3", "#faf9f5"]
+      },
+      "bg-sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar Veil",
+        "canonical": "oklch(98% 0.006 80)",
+        "tonalRamp": ["#2e2d2a", "#504f4a", "#74716a", "#9d9a92", "#c3c1b9", "#dbd9d1", "#edece5", "#fbfaf6"]
+      },
+      "ink-primary": {
+        "role": "neutral",
+        "displayName": "Deep Slate",
+        "canonical": "oklch(22% 0.016 250)",
+        "tonalRamp": ["#0d0f11", "#1a1d21", "#22272f", "#353b45", "#4d5461", "#6b7282", "#959dab", "#c8cdd4"]
+      },
+      "verdict-hire-fill": {
+        "role": "secondary",
+        "displayName": "Confident Green",
+        "canonical": "oklch(57% 0.14 130)",
+        "tonalRamp": ["#0e1f04", "#1d340a", "#2d4c12", "#3f651c", "#5f8b2e", "#7db04a", "#a8ce7a", "#d5e8b8"]
+      },
+      "verdict-maybe-fill": {
+        "role": "tertiary",
+        "displayName": "Measured Amber",
+        "canonical": "oklch(60% 0.14 60)",
+        "tonalRamp": ["#231200", "#3e2100", "#623500", "#8c5500", "#c5811c", "#dca04e", "#edc886", "#f6edcb"]
+      },
+      "verdict-reject-fill": {
+        "role": "tertiary",
+        "displayName": "Decisive Rose",
+        "canonical": "oklch(57% 0.20 25)",
+        "tonalRamp": ["#3d0200", "#660805", "#8f120a", "#b82415", "#e84a45", "#f07d7a", "#f5aaa8", "#fad8d7"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display — Serif", "purpose": "Score numbers, candidate name headers, report titles. The serif voice belongs to the product's judgements." },
+      "headline": { "displayName": "Headline — Serif", "purpose": "Panel section headers: Score breakdown, Matched skills, AI summary." },
+      "title": { "displayName": "Title — Sans", "purpose": "Candidate names in sidebar, column headers, button labels, role selector." },
+      "body": { "displayName": "Body — Sans", "purpose": "AI summary paragraphs, alert text, description copy. Max 65–75ch." },
+      "label": { "displayName": "Label — Sans Uppercase", "purpose": "VERDICT badge text, sidebar section metadata, score denominators. Never decorative eyebrows." }
+    },
+    "shadows": [
+      { "name": "accent-glow", "value": "0 3px 10px rgba(242, 92, 84, 0.32)", "purpose": "Primary button only. Coral-tinted warm glow. Not used anywhere else." },
+      { "name": "interactive-lift", "value": "0 4px 16px rgba(0, 0, 0, 0.08)", "purpose": "Cards and candidate cards on :hover / :focus-visible only. Never at rest." },
+      { "name": "float", "value": "0 8px 24px rgba(0, 0, 0, 0.12)", "purpose": "Floating elements: context menu, tooltip, dropdown popover." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default state transitions (button hover, sidebar hover). 150ms." },
+      { "name": "ease-reveal", "value": "cubic-bezier(0.0, 0.0, 0.2, 1)", "purpose": "Score ring and bar entrance animations. 600–800ms. Ease-out exponential." },
+      { "name": "score-ring-duration", "value": "800ms", "purpose": "Score ring stroke-dashoffset animation from 0 to final value on mount." },
+      { "name": "bar-stagger", "value": "80ms", "purpose": "Stagger delay between each score bar entrance in the breakdown section." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "sidebar-width", "value": "252px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Coral fill, accent glow shadow, opacity drop on hover.",
+      "html": "<button class=\"ds-btn-primary\">Run analysis</button>",
+      "css": ".ds-btn-primary { background: #f25c54; color: #fff; font-family: 'Source Sans 3', system-ui, sans-serif; font-weight: 700; font-size: 14px; border: none; border-radius: 11px; padding: 0.6rem 1rem; width: 100%; box-shadow: 0 3px 10px rgba(242,92,84,.32); cursor: pointer; transition: opacity 0.15s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: 2px solid #f25c54; outline-offset: 2px; } .ds-btn-primary:disabled { background: #f0eee6; border: 1px solid #e3e1d8; color: #c2c4c8; box-shadow: none; cursor: not-allowed; opacity: 1; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting action. White fill, border stroke, no shadow.",
+      "html": "<button class=\"ds-btn-secondary\">Hold for review</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #52575f; font-family: 'Source Sans 3', system-ui, sans-serif; font-weight: 600; font-size: 13.5px; border: 1px solid #e3e1d8; border-radius: 11px; padding: 0.6rem 1rem; width: 100%; cursor: pointer; transition: border-color 0.15s cubic-bezier(0.4,0,0.2,1); } .ds-btn-secondary:hover { border-color: #cfcdc2; } .ds-btn-secondary:focus-visible { outline: 2px solid #f25c54; outline-offset: 2px; }"
+    },
+    {
+      "name": "Verdict Badge — HIRE",
+      "kind": "chip",
+      "refersTo": "verdict-hire",
+      "description": "Affirmative verdict pill. Always text + dot together.",
+      "html": "<div class=\"ds-verdict ds-verdict-hire\"><span class=\"ds-verdict-dot\"></span>VERDICT &middot; HIRE</div>",
+      "css": ".ds-verdict { display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px; border-radius: 999px; font-family: 'Source Sans 3', system-ui, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; } .ds-verdict-dot { width: 8px; height: 8px; border-radius: 99px; display: inline-block; flex-shrink: 0; } .ds-verdict-hire { background: #e4efd2; color: #4d6b22; } .ds-verdict-hire .ds-verdict-dot { background: #5f8b2e; }"
+    },
+    {
+      "name": "Verdict Badge — MAYBE",
+      "kind": "chip",
+      "refersTo": "verdict-maybe",
+      "description": "Holding verdict pill.",
+      "html": "<div class=\"ds-verdict ds-verdict-maybe\"><span class=\"ds-verdict-dot\"></span>VERDICT &middot; MAYBE</div>",
+      "css": ".ds-verdict-maybe { background: #f6ecd2; color: #8c6113; } .ds-verdict-maybe .ds-verdict-dot { background: #c5811c; }"
+    },
+    {
+      "name": "Verdict Badge — REJECT",
+      "kind": "chip",
+      "refersTo": "verdict-reject",
+      "description": "Decisive reject verdict pill.",
+      "html": "<div class=\"ds-verdict ds-verdict-reject\"><span class=\"ds-verdict-dot\"></span>VERDICT &middot; REJECT</div>",
+      "css": ".ds-verdict-reject { background: #f8dcd7; color: #b23a30; } .ds-verdict-reject .ds-verdict-dot { background: #e84a45; }"
+    },
+    {
+      "name": "Skill Pill — Matched",
+      "kind": "chip",
+      "refersTo": "skill-matched",
+      "description": "Confirmed skill presence. Green checkmark prefix.",
+      "html": "<span class=\"ds-skill ds-skill-matched\">&#10003; Python</span>",
+      "css": ".ds-skill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 13.5px; font-weight: 600; margin: 3px; } .ds-skill-matched { background: #e4efd2; color: #4d6b22; } .ds-skill-missing { background: #f8dcd7; color: #b23a30; }"
+    },
+    {
+      "name": "Skill Pill — Missing",
+      "kind": "chip",
+      "refersTo": "skill-missing",
+      "description": "Absent required skill. No prefix — absence is the signal.",
+      "html": "<span class=\"ds-skill ds-skill-missing\">Machine Learning</span>",
+      "css": ""
+    },
+    {
+      "name": "Candidate Card (Sidebar)",
+      "kind": "card",
+      "refersTo": null,
+      "description": "48px sidebar row. Avatar initials + name/role + score. Interactive lift on hover. Right-click triggers delete context menu.",
+      "html": "<div class=\"ds-candidate-card\"><span class=\"ds-candidate-avatar\">JD</span><div class=\"ds-candidate-meta\"><div class=\"ds-candidate-name\">Jane Doe</div><div class=\"ds-candidate-role\">Data Analyst</div></div><span class=\"ds-candidate-score\" style=\"color:#5f8b2e\">87</span></div>",
+      "css": ".ds-candidate-card { display: flex; align-items: center; gap: 11px; padding: 8px 12px; border-radius: 10px; background: transparent; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; } .ds-candidate-card:hover { background: rgba(0,0,0,0.04); box-shadow: 0 4px 16px rgba(0,0,0,0.08); } .ds-candidate-card.active { background: #fdecea; } .ds-candidate-avatar { width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; background: #f0eee6; display: flex; align-items: center; justify-content: center; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 12px; font-weight: 700; color: #6b7078; } .ds-candidate-meta { flex: 1; min-width: 0; } .ds-candidate-name { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #22272f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-candidate-role { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 11px; color: #a7a99f; } .ds-candidate-score { font-family: 'Source Serif 4', Georgia, serif; font-size: 12.5px; font-weight: 700; flex-shrink: 0; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": null,
+      "description": "Standard form field. Coral focus ring matches primary action color.",
+      "html": "<div class=\"ds-input-wrap\"><label class=\"ds-input-label\">Email</label><input class=\"ds-input\" type=\"email\" placeholder=\"you@company.com\"></div>",
+      "css": ".ds-input-wrap { display: flex; flex-direction: column; gap: 6px; } .ds-input-label { font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: #22272f; } .ds-input { background: #ffffff; border: 1px solid #ecebe3; border-radius: 11px; padding: 0.55rem 0.85rem; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; color: #22272f; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; outline: none; } .ds-input::placeholder { color: #7c818b; } .ds-input:focus { border-color: #f25c54; box-shadow: 0 0 0 2px rgba(242,92,84,.1); } .ds-input.error { border-color: #e84a45; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Hiring Partner",
+    "overview": "TalentScan feels like advice from a trusted colleague — someone who's read the CV so you don't have to, and will give you a straight answer. The interface is warm without being casual, professional without being corporate. It doesn't hedge: HIRE is green and means yes, REJECT is red and means no, and the interface is built around the confidence to say so clearly.\n\nThe aesthetic is informed by Linear's opinionated precision (every element earns its place, zero decoration) and Notion's structured density (information is a feature, not a liability). The canvas is a warm cream (#faf9f5), not the sterile white of a legacy ATS. Cards surface on clean white. Depth is tonal, not shadowed — surfaces step up in lightness. The only shadow that exists is on the primary button's coral glow, and on interactive elements at hover.\n\nThe coral accent (#f25c54) is Coral Confidence: warm enough to avoid alarm, authoritative enough to command attention. It appears on primary actions, active nav states, and the brand mark. Its rarity is deliberate.",
+    "keyCharacteristics": [
+      "Warm cream canvas with white card surfaces — tonal depth without shadows at rest",
+      "Coral accent used sparingly: CTAs, active states, brand only",
+      "Serif display font (Source Serif 4) for scores, verdicts, and section headers — authority",
+      "Sans-serif body (Source Sans 3) for UI copy, labels, metadata — efficiency",
+      "Three semantic verdict colors (green/amber/red) always paired with text labels",
+      "Score ring is the signature component — the single most important number on results screens"
+    ],
+    "rules": [
+      { "name": "The Rarity Rule", "body": "Coral Confidence appears on ≤15% of any screen. If a surface reads 'coral' when you squint, it's wrong — it should read 'cream with one clear signal.'", "section": "colors" },
+      { "name": "The Verdict Completeness Rule", "body": "Verdict colors never appear without a paired text label (HIRE / MAYBE / REJECT). Color alone fails WCAG 1.4.1.", "section": "colors" },
+      { "name": "The Two-Voice Rule", "body": "Source Serif 4 speaks for the product's judgements (scores, verdicts, section titles, brand mark). Source Sans 3 handles everything the user operates. Never cross the streams.", "section": "typography" },
+      { "name": "The Flat-by-Default Rule", "body": "No surface has a shadow at rest unless it's floating (menu, tooltip) or branded (coral button glow). Shadow on hover is feedback, not decoration.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Source Serif 4 for all scores, verdicts, and section headings",
+      "Do pair every verdict color badge with a visible text label",
+      "Do keep Coral Confidence to ≤15% of any screen",
+      "Do use tonal layering (canvas → white card) for depth rather than shadows at rest",
+      "Do animate the score ring and bars on first render; respect prefers-reduced-motion",
+      "Do use position: fixed or the Popover API for all floating UI",
+      "Do keep body text and placeholders at ≥ #7c818b for WCAG AA contrast"
+    ],
+    "donts": [
+      "Don't use gradient text (background-clip: text + gradient)",
+      "Don't add colored border-left stripes to cards or list items",
+      "Don't build UI that looks like Greenhouse or Workday — dense grey forms, deep nested dropdowns",
+      "Don't reference Canva or playful consumer aesthetics — pastel gradients, bubbly rounded corners, confetti",
+      "Don't use the generic AI SaaS dashboard aesthetic: big hero metric cards, identical icon-heading-text grids, coral as a dominant surface color",
+      "Don't add shadow at rest to non-floating, non-branded surfaces",
+      "Don't use uppercase tracked labels as decorative eyebrows on every section",
+      "Don't disable states with opacity: 0.5 — use the explicit disabled color set",
+      "Don't render nested cards"
+    ]
+  }
+}
