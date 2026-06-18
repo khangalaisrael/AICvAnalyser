@@ -11,13 +11,17 @@ from routers import analyse, candidates
 
 app = FastAPI(title="TalentScan API", version="1.0.0")
 
+def _get_origins() -> list[str]:
+    origins = ["http://localhost:3000"]
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    if frontend_url:
+        origins.append(frontend_url)
+    return origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://*.vercel.app",
-        os.getenv("FRONTEND_URL", ""),
-    ],
+    allow_origins=_get_origins(),
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
