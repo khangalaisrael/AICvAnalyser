@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 
@@ -492,21 +492,6 @@ function TextBlock({ eyebrow, headline, body }: { eyebrow: string; headline: str
 /* ── main page ──────────────────────────────────────────────────────────── */
 
 export default function LandingPage() {
-  // Lenis smooth scroll
-  useEffect(() => {
-    let rafId: number;
-    // Dynamic import so SSR doesn't choke
-    import("lenis").then(({ default: Lenis }) => {
-      const lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
-      function raf(time: number) {
-        lenis.raf(time);
-        rafId = requestAnimationFrame(raf);
-      }
-      rafId = requestAnimationFrame(raf);
-      return () => { lenis.destroy(); cancelAnimationFrame(rafId); };
-    });
-    return () => cancelAnimationFrame(rafId);
-  }, []);
 
   return (
     <div className="min-h-[100dvh]" style={{ background: BG, color: INK, fontFamily: "var(--font-sans), sans-serif" }}>
