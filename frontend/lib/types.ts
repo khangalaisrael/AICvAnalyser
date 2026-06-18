@@ -37,12 +37,18 @@ export interface LedgerContact {
   links: string[];
 }
 
+export interface SkillGroup {
+  group: string;
+  items: string[];
+}
+
 export interface CVLedger {
   contact: LedgerContact;
   summary: string;
   experience: LedgerExperience[];
   education: LedgerEducation[];
   skills: string[];
+  skill_groups?: SkillGroup[];
   projects: LedgerProject[];
 }
 

@@ -21,6 +21,13 @@ Rules:
 - Include EVERY experience entry, EVERY bullet, EVERY education entry, ALL skills, ALL projects
 - Do NOT add, summarise, or omit any bullet — copy each one verbatim
 
+SKILLS RULES (critical):
+- Extract skills ONLY from the skills section of the CV — do NOT pull in content from volunteering, education, experience, or any other section
+- If the CV organises skills into named categories (e.g. "Programming & Software Development: Python, Java"), use skill_groups — one entry per category with its items
+- If the CV has a flat ungrouped list of skills, leave skill_groups as [] and put items in skills
+- Category/group headers (e.g. "Programming & Software Development") go in "group", NOT in "items" or "skills"
+- Never include section headings like "VOLUNTEERING", "OTHER SKILLS", "EDUCATION" as skills
+
 Return ONLY valid JSON. No markdown fences, no explanation.
 
 {
@@ -52,7 +59,13 @@ Return ONLY valid JSON. No markdown fences, no explanation.
       "year": "<graduation year or ''>"
     }
   ],
-  "skills": ["<skill exactly as written>"],
+  "skills": ["<individual skill — only if CV has flat ungrouped skills list, otherwise leave []>"],
+  "skill_groups": [
+    {
+      "group": "<category name exactly as written, e.g. 'Programming & Software Development'>",
+      "items": ["<individual skill exactly as written>"]
+    }
+  ],
   "projects": [
     {
       "id": "p1",
@@ -98,5 +111,6 @@ def extract_facts_ledger(cv_text: str) -> dict:
     ledger.setdefault("experience", [])
     ledger.setdefault("education", [])
     ledger.setdefault("skills", [])
+    ledger.setdefault("skill_groups", [])
     ledger.setdefault("projects", [])
     return ledger

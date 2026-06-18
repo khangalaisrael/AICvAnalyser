@@ -73,7 +73,7 @@ export function CVDocument({
   accentColor = "#1d3557",
   targetRole,
 }: CVDocumentProps) {
-  const { contact, summary, experience, education, skills, projects } = rewritten;
+  const { contact, summary, experience, education, skills, skill_groups, projects } = rewritten;
   const styles = makeStyles(templateId, accentColor);
 
   // Contact on a single text line — never in header/footer region
@@ -127,10 +127,19 @@ export function CVDocument({
         )}
 
         {/* ── Skills ── */}
-        {skills.length > 0 && (
+        {(skill_groups && skill_groups.length > 0 ? true : skills.length > 0) && (
           <View style={styles.section}>
             <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Skills" />
-            <Text style={styles.body}>{skills.join("  ·  ")}</Text>
+            {skill_groups && skill_groups.length > 0 ? (
+              skill_groups.map((grp, gi) => (
+                <View key={gi} style={{ marginBottom: 5 }}>
+                  <Text style={styles.skillGroupTitle}>{grp.group}</Text>
+                  <Text style={styles.body}>{grp.items.join("  ·  ")}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.body}>{skills.join("  ·  ")}</Text>
+            )}
           </View>
         )}
 
@@ -261,6 +270,7 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         projectTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
         bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 8, flexShrink: 0 },
         body: { fontSize: 9.5, color: "#333", lineHeight: 1.55 },
+        skillGroupTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#333", marginBottom: 1.5 },
       }),
     };
   }
@@ -292,6 +302,7 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         projectTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
         bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 10, flexShrink: 0 },
         body: { fontSize: 10, fontFamily: "Times-Roman", color: "#222", lineHeight: 1.55 },
+        skillGroupTitle: { fontSize: 9.5, fontFamily: "Times-Bold", color: "#333", marginBottom: 1.5 },
       }),
     };
   }
@@ -323,6 +334,7 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
       projectTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#111" },
       bulletDot: { fontSize: 10.5, color: accent, marginRight: 6, width: 9, flexShrink: 0 },
       body: { fontSize: 10.5, color: "#333", lineHeight: 1.6 },
+      skillGroupTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#333", marginBottom: 2 },
     }),
   };
 }

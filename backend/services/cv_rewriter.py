@@ -91,10 +91,11 @@ Return ONLY valid JSON. No markdown, no explanation."""
     except json.JSONDecodeError as exc:
         raise ValueError(f"Rewrite returned invalid JSON: {exc}") from exc
 
-    # Always preserve contact and skills exactly from the source ledger —
+    # Always preserve contact, skills, and skill_groups exactly from the source ledger —
     # the AI must never add, remove, or rephrase these.
     rewritten["contact"] = ledger.get("contact", {})
     rewritten["skills"] = ledger.get("skills", [])
+    rewritten["skill_groups"] = ledger.get("skill_groups", [])
 
     return rewritten
 
