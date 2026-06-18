@@ -16,8 +16,8 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "TalentScan — AI CV Screener",
-  description: "AI-powered CV screening for recruiters.",
+  title: "TalentScan — Know where your CV stands",
+  description: "Score your CV against live job postings, catch ATS problems, close skill gaps, and download a clean rewrite. Free.",
 };
 
 export default function RootLayout({

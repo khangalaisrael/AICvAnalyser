@@ -1,382 +1,544 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
-import { useRef } from "react";
 
-/* ── inline SVG helpers ─────────────────────────────────────── */
-function CheckIcon({ size = 16, color = "currentColor" }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M3 8l3.5 3.5L13 4.5" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function ArrowIcon({ size = 15 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function LogoMark({ size = 32 }: { size?: number }) {
-  return (
-    <div
-      style={{ width: size, height: size, borderRadius: size * 0.25, background: "#f25c54" }}
-      className="flex items-center justify-center flex-shrink-0"
-    >
-      <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path d="M3.5 8.5L6.5 11.5L12.5 5" stroke="white" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  );
-}
+/* ── design tokens ──────────────────────────────────────────────────────── */
+const CORAL = "#f25c54";
+const INK = "#22272f";
+const MUTED = "#7c818b";
+const BORDER = "#ecebe3";
+const BG = "#faf9f5";
+const CARD = "#ffffff";
+const MONO = "'ui-monospace','SF Mono','Cascadia Code','Roboto Mono',monospace";
 
-/* ── scroll-triggered fade-up ──────────────────────────────── */
+/* ── tiny motion primitives ─────────────────────────────────────────────── */
+
 function FadeUp({
   children,
   delay = 0,
   className = "",
+  style = {},
 }: {
   children: React.ReactNode;
   delay?: number;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin: "-70px" });
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 22 }}
+      initial={{ opacity: 0, y: 18 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
   );
 }
 
-/* ── hero mock: CV result card ─────────────────────────────── */
-function ResultCard() {
+/* ── icons ──────────────────────────────────────────────────────────────── */
+
+function LogoMark({ size = 30 }: { size?: number }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.27,
+      background: CORAL, flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      boxShadow: "0 2px 8px rgba(242,92,84,0.28)",
+    }}>
+      <svg width={size * 0.46} height={size * 0.46} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8.5L6.5 12L13 5" stroke="white" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
+function Arrow({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Check({ size = 11, pass = true }: { size?: number; pass?: boolean }) {
+  return pass ? (
+    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M2 6l3 3 5-5" stroke="#437a1a" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M3 3l6 6M9 3l-6 6" stroke="#c7302b" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ── hero visual: CV → analysis transformation ──────────────────────────── */
+
+function PlainCvCard() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.7, delay: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-      className="relative z-10"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        background: "#ffffff",
-        border: "1px solid #ecebe3",
-        borderRadius: 20,
-        padding: "26px",
-        boxShadow: "0 8px 48px rgba(34,39,47,0.11), 0 2px 8px rgba(34,39,47,0.05)",
-        maxWidth: 368,
-        width: "100%",
-        fontFamily: "var(--font-sans), sans-serif",
+        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14,
+        padding: "18px 16px", width: 148,
+        boxShadow: "0 2px 12px rgba(34,39,47,0.06)",
       }}
     >
-      {/* header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: "#f0efe7", border: "1px solid #ecebe3" }} className="flex items-center justify-center flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 4h7l4 4v8H5V4z" stroke="#7c818b" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M12 4v4h4" stroke="#7c818b" strokeWidth="1.5" strokeLinejoin="round" />
-              <path d="M8 11h5M8 14h3" stroke="#7c818b" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#22272f" }}>Sarah Mitchell</div>
-            <div style={{ fontSize: 11, color: "#7c818b" }}>Senior Product Designer · 7 yrs</div>
-          </div>
-        </div>
-        <span style={{
-          fontSize: 10, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase",
-          background: "rgba(95,139,46,0.12)", color: "var(--color-hire-text)", borderRadius: 99, padding: "4px 10px",
-        }}>
-          HIRE
-        </span>
-      </div>
-
-      {/* score bar */}
-      <div className="mb-5">
-        <div className="flex justify-between mb-[5px]">
-          <span style={{ fontSize: 11, color: "#7c818b" }}>Match score</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#22272f" }}>87 / 100</span>
-        </div>
-        <div style={{ height: 5, background: "#ecebe3", borderRadius: 99 }}>
-          <div style={{ height: 5, width: "87%", background: "linear-gradient(90deg,var(--color-hire),var(--color-hire-light))", borderRadius: 99 }} />
+      {/* mini CV document */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+        <div style={{ width: 22, height: 22, borderRadius: 6, background: "#f0efe7", flexShrink: 0 }} />
+        <div>
+          <div style={{ width: 60, height: 6, background: "#d4d3cb", borderRadius: 3, marginBottom: 3 }} />
+          <div style={{ width: 44, height: 5, background: "#e8e7df", borderRadius: 3 }} />
         </div>
       </div>
-
-      {/* strengths */}
-      <div className="flex flex-col gap-[7px] mb-5">
-        {[
-          "Strong UX portfolio with proven user research",
-          "7 yrs experience matches senior requirement",
-          "Led design systems for 2 enterprise clients",
-        ].map((txt, i) => (
-          <div key={i} className="flex gap-2 items-start">
-            <div style={{ width: 16, height: 16, borderRadius: 4, background: "rgba(95,139,46,0.12)", flexShrink: 0, marginTop: 1 }} className="flex items-center justify-center">
-              <CheckIcon size={9} color="var(--color-hire-text)" />
-            </div>
-            <span style={{ fontSize: 11.5, color: "#22272f", lineHeight: 1.5 }}>{txt}</span>
-          </div>
+      {[72, 58, 72, 48, 64, 52].map((w, i) => (
+        <div key={i} style={{
+          width: `${w}%`, height: 5, background: i % 3 === 0 ? "#d4d3cb" : "#e8e7df",
+          borderRadius: 3, marginBottom: 5,
+        }} />
+      ))}
+      <div style={{ marginTop: 10 }}>
+        {[80, 64].map((w, i) => (
+          <div key={i} style={{
+            width: `${w}%`, height: 4, background: "#eae9e1",
+            borderRadius: 3, marginBottom: 4,
+          }} />
         ))}
       </div>
-
-      {/* skill tags */}
-      <div className="flex flex-wrap gap-[6px]">
-        {["Figma", "Design Systems", "User Research", "Prototyping"].map((tag) => (
-          <span key={tag} style={{ fontSize: 10.5, fontWeight: 500, color: "#7c818b", background: "#f5f4ef", border: "1px solid #ecebe3", borderRadius: 99, padding: "3px 9px" }}>
-            {tag}
-          </span>
-        ))}
+      <div style={{ fontSize: 9, color: "#bbb", marginTop: 10, fontFamily: MONO, textAlign: "center" }}>
+        your-cv.pdf
       </div>
     </motion.div>
   );
 }
 
-/* ── pipeline mini-card ────────────────────────────────────── */
-function PipelineCard() {
-  const rows = [
-    { name: "James K.", badge: "HIRE",   bg: "rgba(95,139,46,0.10)",   color: "var(--color-hire-text)" },
-    { name: "Priya M.", badge: "MAYBE",  bg: "rgba(197,129,28,0.10)",  color: "var(--color-maybe-text)" },
-    { name: "Tom W.",   badge: "REJECT", bg: "rgba(232,74,69,0.10)",   color: "var(--color-reject-text)" },
-  ];
+function ScoreResultCard() {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 16, y: 12 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.65, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        position: "absolute", bottom: -18, right: -14, zIndex: 0,
-        background: "#ffffff", border: "1px solid #ecebe3", borderRadius: 14,
-        padding: "14px 16px", width: 210,
-        boxShadow: "0 4px 24px rgba(34,39,47,0.07)",
-        fontFamily: "var(--font-sans), sans-serif",
+        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14,
+        padding: "18px 16px", width: 190,
+        boxShadow: "0 6px 32px rgba(34,39,47,0.10)",
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#7c818b", marginBottom: 10 }}>
-        Pipeline · 12 CVs
+      <div style={{ fontSize: 10, color: MUTED, marginBottom: 8, letterSpacing: 0.1 }}>
+        Senior Product Manager
       </div>
-      {rows.map((r) => (
-        <div key={r.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #f0efe7" }}>
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: "#22272f" }}>{r.name}</span>
-          <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", background: r.bg, color: r.color, borderRadius: 99, padding: "2px 8px" }}>
-            {r.badge}
-          </span>
+
+      {/* score */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 6 }}>
+        <span style={{ fontSize: 34, fontWeight: 800, color: INK, fontFamily: MONO, letterSpacing: "-0.04em", lineHeight: 1 }}>87</span>
+        <span style={{ fontSize: 13, color: MUTED, fontFamily: MONO }}>/100</span>
+      </div>
+
+      {/* bar */}
+      <div style={{ height: 4, background: BORDER, borderRadius: 99, marginBottom: 12, overflow: "hidden" }}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "87%" }}
+          transition={{ duration: 0.9, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
+          style={{ height: 4, background: "linear-gradient(90deg,#437a1a,#7db83a)", borderRadius: 99 }}
+        />
+      </div>
+
+      {/* match items */}
+      {[
+        { text: "Product leadership exp.", pass: true },
+        { text: "Cross-functional teams", pass: true },
+        { text: "OKR framework missing", pass: false },
+        { text: "SQL not in skills", pass: false },
+      ].map((item) => (
+        <div key={item.text} style={{ display: "flex", gap: 6, alignItems: "flex-start", marginBottom: 5 }}>
+          <div style={{ marginTop: 1, flexShrink: 0 }}>
+            <Check pass={item.pass} />
+          </div>
+          <span style={{ fontSize: 10.5, color: item.pass ? INK : MUTED, lineHeight: 1.4 }}>{item.text}</span>
         </div>
       ))}
     </motion.div>
   );
 }
 
-/* ── feature data ──────────────────────────────────────────── */
-const FEATURES = [
-  {
-    title: "PDF Upload & Parsing",
-    desc: "Drop in any CV. TalentScan extracts structured data from PDFs instantly — no templates, no setup.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M5 3h8l4 4v10H5V3z" stroke="#f25c54" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M13 3v4h4" stroke="#f25c54" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M8 10h5M8 13h3" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: "Two Analysis Modes",
-    desc: "Aspiring for graduates. Applying for active candidates. One toggle switches the scoring lens.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="10" cy="10" r="7" stroke="#f25c54" strokeWidth="1.5" />
-        <path d="M6 10h8M10 6l4 4-4 4" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    title: "HIRE / MAYBE / REJECT",
-    desc: "Every CV gets a decisive recommendation backed by match scores, strengths, and red flags.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M3 10h3l2 5 4-10 2 5h3" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
-    title: "Candidate Pipeline",
-    desc: "All screened CVs in one organised view. Filter, sort, and shortlist without juggling spreadsheets.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <rect x="3" y="3" width="14" height="14" rx="3" stroke="#f25c54" strokeWidth="1.5" />
-        <path d="M7 8h7M7 12h5" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: "Coaching Feedback",
-    desc: "Detailed written feedback for every candidate — ready to share or brief your hiring team.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M4 4h12v9H4z" stroke="#f25c54" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M7 16l3-3 3 3" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M7 8h6M7 11h4" stroke="#f25c54" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: "Free to Start",
-    desc: "Create an account and screen CVs immediately. No credit card, no onboarding call, no gatekeeping.",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M10 3l2 5h5l-4 3 1.5 5L10 13l-4.5 3L7 11 3 8h5L10 3z" stroke="#f25c54" strokeWidth="1.5" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-];
+/* ── feature section mock UIs ───────────────────────────────────────────── */
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Upload a CV",
-    body: "Drag-and-drop or browse. TalentScan handles any PDF format — no manual extraction, no reformatting.",
-  },
-  {
-    n: "02",
-    title: "Pick your mode",
-    body: "Aspiring for graduates and career changers. Applying for active job-seekers. One toggle, right lens every time.",
-  },
-  {
-    n: "03",
-    title: "Get your verdict",
-    body: "HIRE, MAYBE, or REJECT — with a full score breakdown, key strengths, and coaching notes. Done.",
-  },
-];
-
-/* ─────────────────────────────────────────────────────────── */
-export default function LandingPage() {
+function MockCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[100dvh]" style={{ background: "#faf9f5", color: "#22272f", fontFamily: "var(--font-sans), sans-serif" }}>
+    <div style={{
+      background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
+      padding: "24px", boxShadow: "0 4px 24px rgba(34,39,47,0.07)",
+      maxWidth: 380,
+    }}>
+      {children}
+    </div>
+  );
+}
 
-      {/* ── NAV ────────────────────────────────────────────── */}
+function ScoreFeatureMock() {
+  const items = [
+    { text: "Led cross-functional teams (3 mentions)", pass: true },
+    { text: "5+ yrs product experience", pass: true },
+    { text: "Agile / Scrum methodology", pass: true },
+    { text: "OKRs framework — not mentioned", pass: false },
+    { text: "SQL proficiency — not in skills", pass: false },
+  ];
+  return (
+    <MockCard>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Head of Product · Fintech</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
+            <span style={{ fontSize: 40, fontWeight: 800, color: INK, fontFamily: MONO, letterSpacing: "-0.04em", lineHeight: 1 }}>82</span>
+            <span style={{ fontSize: 14, color: MUTED, fontFamily: MONO }}>/100</span>
+          </div>
+        </div>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, color: "#437a1a",
+          background: "rgba(67,122,26,0.10)", borderRadius: 99, padding: "4px 10px",
+        }}>Strong match</div>
+      </div>
+      <div style={{ height: 5, background: BORDER, borderRadius: 99, marginBottom: 14, overflow: "hidden" }}>
+        <div style={{ height: 5, width: "82%", background: "linear-gradient(90deg,#437a1a,#7db83a)", borderRadius: 99 }} />
+      </div>
+      {items.map((item) => (
+        <div key={item.text} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "flex-start" }}>
+          <div style={{ marginTop: 1, flexShrink: 0 }}><Check pass={item.pass} /></div>
+          <span style={{ fontSize: 12.5, color: item.pass ? INK : MUTED, lineHeight: 1.5 }}>{item.text}</span>
+        </div>
+      ))}
+    </MockCard>
+  );
+}
+
+function AtsFeatureMock() {
+  const items = [
+    { text: "Two-column layout detected", pass: false },
+    { text: "Contact info in header — may be skipped", pass: false },
+    { text: "Table used in skills section", pass: false },
+    { text: "No images or text in images", pass: true },
+    { text: "Standard section headings", pass: true },
+    { text: "Machine-readable fonts", pass: true },
+  ];
+  return (
+    <MockCard>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>ATS scan</div>
+        <div style={{
+          fontSize: 10.5, fontWeight: 700, color: "#c7302b",
+          background: "rgba(199,48,43,0.08)", borderRadius: 99, padding: "3px 10px",
+        }}>3 issues found</div>
+      </div>
+      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
+      {items.map((item) => (
+        <div key={item.text} style={{ display: "flex", gap: 8, marginBottom: 9, alignItems: "flex-start" }}>
+          <div style={{ marginTop: 1, flexShrink: 0 }}><Check pass={item.pass} /></div>
+          <span style={{ fontSize: 12.5, color: item.pass ? MUTED : INK, lineHeight: 1.5 }}>{item.text}</span>
+        </div>
+      ))}
+    </MockCard>
+  );
+}
+
+function GapsFeatureMock() {
+  const skills = [
+    { name: "SQL", count: 9, have: false },
+    { name: "OKR frameworks", count: 8, have: false },
+    { name: "Agile / Scrum", count: 8, have: true },
+    { name: "Stakeholder mgmt", count: 7, have: true },
+    { name: "A/B testing", count: 5, have: false },
+  ];
+  return (
+    <MockCard>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 3 }}>Live market · Senior PM · London</div>
+        <div style={{ fontSize: 11, color: MUTED }}>Based on 47 current postings</div>
+      </div>
+      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
+      {skills.map((s) => (
+        <div key={s.name} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: s.have ? MUTED : INK, fontWeight: s.have ? 400 : 600 }}>{s.name}</span>
+            <span style={{ fontSize: 11, color: MUTED, fontFamily: MONO }}>{s.count}/10 postings</span>
+          </div>
+          <div style={{ height: 4, background: BORDER, borderRadius: 99, overflow: "hidden" }}>
+            <div style={{
+              height: 4, width: `${s.count * 10}%`, borderRadius: 99,
+              background: s.have ? "#7db83a" : CORAL, opacity: s.have ? 0.5 : 0.8,
+            }} />
+          </div>
+          {!s.have && (
+            <div style={{ fontSize: 10, color: CORAL, marginTop: 2 }}>Not in your CV</div>
+          )}
+        </div>
+      ))}
+    </MockCard>
+  );
+}
+
+function RewriteFeatureMock() {
+  return (
+    <MockCard>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: MUTED, marginBottom: 8 }}>
+          Before
+        </div>
+        <div style={{
+          fontSize: 12.5, color: "#999", lineHeight: 1.6,
+          textDecoration: "line-through", background: "#f5f4ef",
+          borderRadius: 6, padding: "8px 10px",
+        }}>
+          Managed a team of engineers and delivered the project on time.
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+        <div style={{ flex: 1, height: 1, background: BORDER }} />
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M7 2v10M3 9l4 4 4-4" stroke={MUTED} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <div style={{ flex: 1, height: 1, background: BORDER }} />
+      </div>
+      <div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#437a1a", marginBottom: 8 }}>
+          After
+        </div>
+        <div style={{
+          fontSize: 12.5, color: INK, lineHeight: 1.6,
+          background: "rgba(67,122,26,0.06)", borderLeft: "2px solid #7db83a",
+          borderRadius: "0 6px 6px 0", padding: "8px 10px",
+        }}>
+          Led 6-person engineering team to deliver payment API gateway — reduced checkout latency by 40% across 3 markets.
+        </div>
+        <div style={{ fontSize: 10.5, color: MUTED, marginTop: 8, fontStyle: "italic" }}>
+          Every change traces to your original. Nothing invented.
+        </div>
+      </div>
+    </MockCard>
+  );
+}
+
+/* ── feature section layout ─────────────────────────────────────────────── */
+
+function FeatureSection({
+  eyebrow, headline, body, mock, flip = false,
+}: {
+  eyebrow: string;
+  headline: string;
+  body: string;
+  mock: React.ReactNode;
+  flip?: boolean;
+}) {
+  return (
+    <div style={{ borderTop: `1px solid ${BORDER}` }}>
+      <div
+        className="mx-auto px-6"
+        style={{
+          maxWidth: 1100,
+          paddingTop: 96,
+          paddingBottom: 96,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 72,
+          alignItems: "center",
+        }}
+      >
+        {/* text first or second depending on flip */}
+        {flip ? (
+          <>
+            <FadeUp delay={0.1}>
+              <div style={{ display: "flex", justifyContent: "center" }}>{mock}</div>
+            </FadeUp>
+            <FadeUp delay={0.0}>
+              <TextBlock eyebrow={eyebrow} headline={headline} body={body} />
+            </FadeUp>
+          </>
+        ) : (
+          <>
+            <FadeUp delay={0.0}>
+              <TextBlock eyebrow={eyebrow} headline={headline} body={body} />
+            </FadeUp>
+            <FadeUp delay={0.1}>
+              <div style={{ display: "flex", justifyContent: "center" }}>{mock}</div>
+            </FadeUp>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TextBlock({ eyebrow, headline, body }: { eyebrow: string; headline: string; body: string }) {
+  return (
+    <div>
+      <p style={{
+        fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+        textTransform: "uppercase", color: MUTED, marginBottom: 18,
+      }}>
+        {eyebrow}
+      </p>
+      <h2 style={{
+        fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 700,
+        letterSpacing: "-0.025em", lineHeight: 1.15,
+        color: INK, marginBottom: 18,
+      }}>
+        {headline}
+      </h2>
+      <p style={{ fontSize: 16, color: MUTED, lineHeight: 1.75, maxWidth: 440 }}>
+        {body}
+      </p>
+    </div>
+  );
+}
+
+/* ── main page ──────────────────────────────────────────────────────────── */
+
+export default function LandingPage() {
+  // Lenis smooth scroll
+  useEffect(() => {
+    let rafId: number;
+    // Dynamic import so SSR doesn't choke
+    import("lenis").then(({ default: Lenis }) => {
+      const lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+      function raf(time: number) {
+        lenis.raf(time);
+        rafId = requestAnimationFrame(raf);
+      }
+      rafId = requestAnimationFrame(raf);
+      return () => { lenis.destroy(); cancelAnimationFrame(rafId); };
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  return (
+    <div className="min-h-[100dvh]" style={{ background: BG, color: INK, fontFamily: "var(--font-sans), sans-serif" }}>
+
+      {/* ── NAV ────────────────────────────────────────────────────── */}
       <nav
         className="sticky top-0 z-50"
         style={{
-          borderBottom: "1px solid #ecebe3",
-          background: "rgba(250,249,245,0.88)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
+          borderBottom: `1px solid ${BORDER}`,
+          background: "rgba(250,249,245,0.90)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="flex items-center justify-between mx-auto px-6" style={{ maxWidth: 1160, height: 62 }}>
-          <div className="flex items-center gap-[10px]">
+        <div
+          className="flex items-center justify-between mx-auto px-6"
+          style={{ maxWidth: 1100, height: 64 }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <LogoMark size={30} />
-            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>TalentScan</span>
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>TalentScan</span>
           </div>
-          <div className="hidden sm:flex items-center gap-6">
-            <a href="#features" style={{ fontSize: 13.5, color: "#7c818b", textDecoration: "none" }}
-               className="hover:text-[#22272f] transition-colors">Features</a>
-            <a href="#how-it-works" style={{ fontSize: 13.5, color: "#7c818b", textDecoration: "none" }}
-               className="hover:text-[#22272f] transition-colors">How it works</a>
+
+          <div className="hidden sm:flex items-center gap-7">
+            <a href="#how-it-works" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}
+              className="hover:text-[#22272f] transition-colors">
+              How it works
+            </a>
+            <a href="#features" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}
+              className="hover:text-[#22272f] transition-colors">
+              Features
+            </a>
             <Link href="/auth"
-              className="transition-all hover:opacity-90 active:scale-[0.98]"
+              className="inline-flex items-center gap-[6px] transition-all hover:opacity-90 active:scale-[0.98]"
               style={{
                 fontSize: 13.5, fontWeight: 600, color: "white",
-                background: "#22272f", borderRadius: 10, padding: "8px 18px",
-                textDecoration: "none",
+                background: CORAL, borderRadius: 10, padding: "8px 18px",
+                textDecoration: "none", boxShadow: "0 2px 10px rgba(242,92,84,0.30)",
               }}>
-              Get started →
+              Analyze my CV <Arrow size={13} />
             </Link>
           </div>
-          {/* mobile CTA */}
+
           <Link href="/auth"
-            className="sm:hidden transition-opacity hover:opacity-90"
-            style={{ fontSize: 13, fontWeight: 600, color: "#f25c54", textDecoration: "none" }}>
-            Sign up
+            className="sm:hidden"
+            style={{ fontSize: 13.5, fontWeight: 600, color: CORAL, textDecoration: "none" }}>
+            Get started
           </Link>
         </div>
       </nav>
 
-      {/* ── HERO ───────────────────────────────────────────── */}
-      <section className="mx-auto px-6 pt-[72px] pb-[88px]" style={{ maxWidth: 1160 }}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      {/* ── HERO ───────────────────────────────────────────────────── */}
+      <section className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 88, paddingBottom: 104 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-16 items-center">
 
-          {/* left */}
+          {/* left: headline + CTAs */}
           <div>
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
+              style={{ marginBottom: 28 }}
             >
-              <span className="inline-flex items-center gap-2 mb-6"
-                style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
-                  color: "#f25c54", background: "rgba(242,92,84,0.09)", border: "1px solid rgba(242,92,84,0.2)",
-                  borderRadius: 99, padding: "5px 12px",
-                }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#f25c54" }} />
-                AI-Powered CV Screening
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
+                color: CORAL, background: "rgba(242,92,84,0.09)",
+                border: "1px solid rgba(242,92,84,0.20)", borderRadius: 99, padding: "5px 12px",
+              }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: CORAL }} />
+                Free CV analysis
               </span>
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 22 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.07, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                fontSize: "clamp(38px, 5.5vw, 62px)",
-                fontWeight: 700, lineHeight: 1.07,
-                letterSpacing: "-0.03em", color: "#22272f",
+                fontSize: "clamp(36px, 5.5vw, 60px)",
+                fontWeight: 700, lineHeight: 1.08,
+                letterSpacing: "-0.03em", color: INK,
                 marginBottom: 22,
               }}
             >
-              Screen CVs in{" "}
-              <em style={{
-                fontStyle: "italic",
-                fontFamily: "var(--font-serif), 'Source Serif 4', serif",
-                fontWeight: 600, color: "#f25c54",
-              }}>
-                seconds,
-              </em>
-              {" "}not hours.
+              Know exactly where
+              <br />
+              your CV stands.
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.16, ease: "easeOut" }}
-              style={{ fontSize: 17, color: "#7c818b", lineHeight: 1.72, maxWidth: 460, marginBottom: 34 }}
+              transition={{ duration: 0.6, delay: 0.18, ease: "easeOut" }}
+              style={{ fontSize: 17, color: MUTED, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}
             >
-              TalentScan analyses every CV against your requirements and returns a clear{" "}
-              <strong style={{ color: "var(--color-hire-text)" }}>HIRE</strong>,{" "}
-              <strong style={{ color: "var(--color-maybe-text)" }}>MAYBE</strong>, or{" "}
-              <strong style={{ color: "var(--color-reject-text)" }}>REJECT</strong>{" "}
-              — with the reasoning to back it up.
+              Enter a role, upload your CV. TalentScan scores it against live postings, flags ATS problems, surfaces the skill gaps — and rewrites it into a clean, downloadable PDF.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.26, ease: "easeOut" }}
-              className="flex flex-wrap gap-3"
+              transition={{ duration: 0.5, delay: 0.28, ease: "easeOut" }}
+              style={{ display: "flex", flexWrap: "wrap", gap: 12 }}
             >
               <Link href="/auth"
                 className="inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{
-                  fontSize: 14.5, fontWeight: 700, color: "white",
-                  background: "#f25c54", borderRadius: 11, padding: "13px 26px",
+                  fontSize: 15, fontWeight: 700, color: "white",
+                  background: CORAL, borderRadius: 11, padding: "13px 26px",
                   textDecoration: "none",
-                  boxShadow: "0 4px 20px rgba(242,92,84,0.32)",
+                  boxShadow: "0 4px 20px rgba(242,92,84,0.30)",
                 }}>
-                Start for free <ArrowIcon size={14} />
+                Analyze my CV <Arrow size={14} />
               </Link>
               <a href="#how-it-works"
                 className="inline-flex items-center gap-2 transition-all hover:bg-[#f0efe7] active:scale-[0.98]"
                 style={{
-                  fontSize: 14.5, fontWeight: 500, color: "#22272f",
-                  background: "transparent", border: "1px solid #ecebe3",
+                  fontSize: 15, fontWeight: 500, color: INK,
+                  background: "transparent", border: `1px solid ${BORDER}`,
                   borderRadius: 11, padding: "13px 22px", textDecoration: "none",
                 }}>
                 See how it works
@@ -386,115 +548,106 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.48 }}
-              className="flex flex-wrap gap-5 mt-7"
+              transition={{ duration: 0.5, delay: 0.5 }}
+              style={{ display: "flex", gap: 18, marginTop: 22, flexWrap: "wrap" }}
             >
-              {["No credit card", "Instant results", "Any CV format"].map((txt) => (
-                <div key={txt} className="flex items-center gap-[6px]">
-                  <CheckIcon size={13} color="var(--color-hire-text)" />
-                  <span style={{ fontSize: 13, color: "#7c818b" }}>{txt}</span>
+              {["Free to use", "Any PDF format", "No credit card"].map((txt) => (
+                <div key={txt} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Check size={10} pass={true} />
+                  <span style={{ fontSize: 13, color: MUTED }}>{txt}</span>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* right: floating mockup */}
-          <div className="hidden lg:flex justify-center items-center">
-            <div className="relative" style={{ width: "100%", maxWidth: 400 }}>
-              <ResultCard />
-              <PipelineCard />
-            </div>
+          {/* right: CV → score transformation */}
+          <div className="hidden lg:flex items-center justify-center gap-4">
+            <PlainCvCard />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.42 }}
+              style={{ color: "#d4d3cb", flexShrink: 0 }}
+            >
+              <Arrow size={18} />
+            </motion.div>
+            <ScoreResultCard />
           </div>
         </div>
       </section>
 
-      {/* ── STATS BAND ─────────────────────────────────────── */}
-      <section style={{ borderTop: "1px solid #ecebe3", borderBottom: "1px solid #ecebe3", background: "#ffffff" }}>
-        <div className="mx-auto px-6" style={{ maxWidth: 1160 }}>
-          <FadeUp>
-            <div className="grid grid-cols-1 sm:grid-cols-3">
-              {[
-                { value: "10×",   label: "faster than manual screening" },
-                { value: "3",     label: "clear decisions per CV" },
-                { value: "100%",  label: "AI reasoning, every candidate" },
-              ].map((s, i) => (
-                <div key={i}
-                  className="py-10 text-center"
-                  style={{ borderRight: i < 2 ? "1px solid #ecebe3" : "none" }}
-                >
-                  <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.04em", color: "#22272f", marginBottom: 5 }}>
-                    {s.value}
-                  </div>
-                  <div style={{ fontSize: 13.5, color: "#7c818b" }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </FadeUp>
-        </div>
-      </section>
-
-      {/* ── FEATURES ───────────────────────────────────────── */}
-      <section id="features" className="mx-auto px-6 pt-[72px] pb-[80px]" style={{ maxWidth: 1160 }}>
+      {/* ── PROBLEM ────────────────────────────────────────────────── */}
+      <section style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
         <FadeUp>
-          <div className="text-center mb-14">
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#f25c54", marginBottom: 14 }}>
-              FEATURES
+          <div
+            className="mx-auto px-6 text-center"
+            style={{ maxWidth: 740, paddingTop: 80, paddingBottom: 80 }}
+          >
+            <p style={{
+              fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 600,
+              color: INK, lineHeight: 1.4, letterSpacing: "-0.02em",
+            }}>
+              Most candidates submit their CV and hope.
+              <span style={{ color: MUTED }}> You'll know exactly where you're competitive and where you're not — before you hit send.</span>
             </p>
-            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.15, color: "#22272f" }}>
-              Everything you need to hire smarter
-            </h2>
           </div>
         </FadeUp>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map((f, i) => (
-            <FadeUp key={f.title} delay={i * 0.05}>
-              <div
-                className="h-full transition-all duration-200 hover:-translate-y-[2px]"
-                style={{
-                  padding: "26px", border: "1px solid #ecebe3", borderRadius: 16,
-                  background: "#ffffff",
-                }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(34,39,47,0.08)")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "none")}
-              >
-                <div className="flex items-center justify-center mb-5"
-                  style={{ width: 42, height: 42, borderRadius: 11, background: "rgba(242,92,84,0.08)" }}>
-                  {f.icon}
-                </div>
-                <div style={{ fontSize: 15.5, fontWeight: 700, color: "#22272f", marginBottom: 8, letterSpacing: "-0.01em" }}>
-                  {f.title}
-                </div>
-                <div style={{ fontSize: 13.5, color: "#7c818b", lineHeight: 1.68 }}>{f.desc}</div>
-              </div>
-            </FadeUp>
-          ))}
-        </div>
       </section>
 
-      {/* ── HOW IT WORKS ───────────────────────────────────── */}
-      <section id="how-it-works" style={{ borderTop: "1px solid #ecebe3", borderBottom: "1px solid #ecebe3", background: "#ffffff" }}>
-        <div className="mx-auto px-6 py-[80px]" style={{ maxWidth: 1160 }}>
+      {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
+      <section id="how-it-works">
+        <div className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 96, paddingBottom: 96 }}>
           <FadeUp>
-            <div className="text-center mb-16">
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#f25c54", marginBottom: 14 }}>
-                HOW IT WORKS
+            <div style={{ marginBottom: 64 }}>
+              <p style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+                textTransform: "uppercase", color: MUTED, marginBottom: 16,
+              }}>
+                How it works
               </p>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.15, color: "#22272f" }}>
-                CV to decision in three steps
+              <h2 style={{
+                fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 700,
+                letterSpacing: "-0.025em", lineHeight: 1.12, color: INK, maxWidth: 540,
+              }}>
+                Three steps to a stronger application.
               </h2>
             </div>
           </FadeUp>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-12">
-            {STEPS.map((step, i) => (
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 48 }}>
+            {[
+              {
+                n: "01",
+                title: "Enter the role you want",
+                body: "Not a generic analysis. We pull live job postings for that specific title and market — then score your CV against what employers are actually asking for right now.",
+              },
+              {
+                n: "02",
+                title: "See where you're competitive",
+                body: "Match score, ATS flags, skill gaps, trending requirements. Every finding is specific and grounded in real data — not AI assumptions about what a CV 'should' look like.",
+              },
+              {
+                n: "03",
+                title: "Download a rewritten CV",
+                body: "We reframe your real experience in the role's language and generate a clean, ATS-safe PDF. Nothing invented — every change traces back to your original CV.",
+              },
+            ].map((step, i) => (
               <FadeUp key={step.n} delay={i * 0.1}>
                 <div>
-                  <div style={{ fontSize: 52, fontWeight: 800, letterSpacing: "-0.04em", color: "#ecebe3", lineHeight: 1, marginBottom: 18 }}>
+                  <div style={{
+                    fontSize: 52, fontWeight: 800, letterSpacing: "-0.05em",
+                    color: BORDER, lineHeight: 1, marginBottom: 22,
+                    fontFamily: MONO,
+                  }}>
                     {step.n}
                   </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "#22272f", letterSpacing: "-0.01em", marginBottom: 10 }}>
+                  <h3 style={{
+                    fontSize: 18, fontWeight: 700, color: INK,
+                    letterSpacing: "-0.015em", marginBottom: 12,
+                  }}>
                     {step.title}
                   </h3>
-                  <p style={{ fontSize: 14, color: "#7c818b", lineHeight: 1.72 }}>{step.body}</p>
+                  <p style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.75 }}>{step.body}</p>
                 </div>
               </FadeUp>
             ))}
@@ -502,61 +655,115 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ──────────────────────────────────────── */}
-      <section className="mx-auto px-6 py-[80px]" style={{ maxWidth: 1160 }}>
+      {/* ── FEATURES ───────────────────────────────────────────────── */}
+      <div id="features">
+        <FeatureSection
+          eyebrow="Match score"
+          headline="A score that tells you why."
+          body="87/100 without context is noise. We show exactly which requirements you matched, which you're missing, and how many live postings cite each gap — so you know what's worth fixing."
+          mock={<ScoreFeatureMock />}
+        />
+        <FeatureSection
+          eyebrow="ATS check"
+          headline="The problems ATS systems actually catch."
+          body="Two-column layouts, contact info in headers, tables in skills sections — these are the real reasons CVs fail to parse. We flag the actual issues, not CV folklore."
+          mock={<AtsFeatureMock />}
+          flip
+        />
+        <FeatureSection
+          eyebrow="Skill gaps · live data"
+          headline="Gaps from live postings, not guesswork."
+          body={`"9 of 10 current postings for this role mention SQL. Your CV doesn't mention it." That's actionable. Every gap is grounded in real listings for the specific role you entered.`}
+          mock={<GapsFeatureMock />}
+        />
+        <FeatureSection
+          eyebrow="CV rewrite"
+          headline="Your experience, in the role's language."
+          body="We rewrite every bullet to mirror the target role's vocabulary — using only what's already in your CV. Every change traces to your original. Nothing is invented, nothing is removed."
+          mock={<RewriteFeatureMock />}
+          flip
+        />
+      </div>
+
+      {/* ── HONESTY STRIP ──────────────────────────────────────────── */}
+      <div style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
+        <FadeUp>
+          <div className="mx-auto px-6 text-center" style={{ maxWidth: 700, paddingTop: 52, paddingBottom: 52 }}>
+            <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.7 }}>
+              TalentScan is an assessment and improvement tool — not a hiring guarantee.
+              We show you where you're competitive and where you're not. What you do with that is yours.
+            </p>
+          </div>
+        </FadeUp>
+      </div>
+
+      {/* ── FINAL CTA ──────────────────────────────────────────────── */}
+      <section className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 80, paddingBottom: 80 }}>
         <FadeUp>
           <div
-            className="text-center relative overflow-hidden"
-            style={{ borderRadius: 24, padding: "72px 40px", background: "#22272f" }}
+            style={{
+              borderRadius: 24, padding: "80px 48px", background: INK,
+              textAlign: "center", position: "relative", overflow: "hidden",
+            }}
           >
-            {/* coral ambient glow */}
+            {/* ambient glow */}
             <div style={{
-              position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-              width: 640, height: 320, borderRadius: "50%",
-              background: "radial-gradient(ellipse, rgba(242,92,84,0.18) 0%, transparent 70%)",
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%,-50%)",
+              width: 600, height: 300, borderRadius: "50%",
+              background: "radial-gradient(ellipse, rgba(242,92,84,0.14) 0%, transparent 70%)",
               pointerEvents: "none",
             }} />
 
-            <p className="relative" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
-              GET STARTED
+            <p className="relative" style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20,
+            }}>
+              Free · No credit card
             </p>
             <h2 className="relative" style={{
-              fontSize: "clamp(26px, 4vw, 46px)", fontWeight: 700, letterSpacing: "-0.03em",
-              lineHeight: 1.1, color: "white", marginBottom: 18,
+              fontSize: "clamp(26px, 4vw, 48px)", fontWeight: 700,
+              letterSpacing: "-0.03em", lineHeight: 1.1,
+              color: "white", marginBottom: 16,
             }}>
-              Your next great hire is in that pile.
-              <br />
-              <em style={{ fontStyle: "italic", fontFamily: "var(--font-serif), 'Source Serif 4', serif", fontWeight: 600, color: "#f25c54" }}>
-                Find them faster.
-              </em>
+              See where you actually stand.
             </h2>
-            <p className="relative mx-auto mb-9" style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 440, lineHeight: 1.7 }}>
-              Join recruiters already using TalentScan to cut screening time and make better, faster hiring decisions.
+            <p className="relative mx-auto" style={{
+              fontSize: 16, color: "rgba(255,255,255,0.5)",
+              maxWidth: 420, lineHeight: 1.75, marginBottom: 36,
+            }}>
+              Upload your CV and the role you want. The analysis takes seconds.
             </p>
             <Link href="/auth"
               className="relative inline-flex items-center gap-2 transition-all hover:opacity-95 active:scale-[0.98]"
               style={{
-                fontSize: 14.5, fontWeight: 700, color: "#22272f",
+                fontSize: 15, fontWeight: 700, color: INK,
                 background: "white", borderRadius: 11, padding: "14px 30px",
-                textDecoration: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.22)",
+                textDecoration: "none", boxShadow: "0 4px 24px rgba(0,0,0,0.24)",
               }}>
-              Create free account <ArrowIcon size={14} />
+              Analyze my CV <Arrow size={14} />
             </Link>
           </div>
         </FadeUp>
       </section>
 
-      {/* ── FOOTER ─────────────────────────────────────────── */}
-      <footer style={{ borderTop: "1px solid #ecebe3", padding: "28px 24px" }}>
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-4" style={{ maxWidth: 1160 }}>
-          <div className="flex items-center gap-[9px]">
-            <LogoMark size={24} />
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#22272f" }}>TalentScan</span>
+      {/* ── FOOTER ─────────────────────────────────────────────────── */}
+      <footer style={{ borderTop: `1px solid ${BORDER}`, padding: "28px 24px" }}>
+        <div
+          className="mx-auto flex flex-wrap items-center justify-between gap-4"
+          style={{ maxWidth: 1100 }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <LogoMark size={22} />
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>TalentScan</span>
           </div>
-          <p style={{ fontSize: 12.5, color: "#7c818b" }}>© 2026 TalentScan · AI-powered CV screening</p>
-          <Link href="/auth" style={{ fontSize: 13, fontWeight: 600, color: "#f25c54", textDecoration: "none" }}
+          <p style={{ fontSize: 12.5, color: MUTED }}>
+            © 2026 TalentScan · Assessment tool, not a hiring guarantee.
+          </p>
+          <Link href="/auth"
+            style={{ fontSize: 13, fontWeight: 600, color: CORAL, textDecoration: "none" }}
             className="hover:underline">
-            Get started →
+            Analyze my CV →
           </Link>
         </div>
       </footer>
