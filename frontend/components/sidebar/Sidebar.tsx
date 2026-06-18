@@ -1,11 +1,36 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CandidateList } from "./CandidateList";
 
+const NAV_ITEMS = [
+  {
+    href: "/dashboard",
+    label: "Analyse CV",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M5 8h6M5 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    href: "/dashboard/rewrite",
+    label: "Rewrite CV",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 13l2-1 7-7-1-1-7 7-1 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M11 3l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+];
+
 export function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   async function handleSignOut() {
@@ -45,8 +70,34 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* Nav items */}
+      <div style={{ padding: "10px 10px 6px", flexShrink: 0 }}>
+        {NAV_ITEMS.map(({ href, label, icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "8px 10px", borderRadius: 8, marginBottom: 2,
+                fontSize: 13, fontWeight: active ? 600 : 400,
+                color: active ? "#22272f" : "#7c818b",
+                background: active ? "#fff" : "transparent",
+                textDecoration: "none",
+                boxShadow: active ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
+                transition: "background 0.12s, color 0.12s",
+              }}
+            >
+              {icon}
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Section label */}
-      <div style={{ padding: "14px 16px 6px", flexShrink: 0 }}>
+      <div style={{ padding: "8px 16px 6px", flexShrink: 0 }}>
         <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "#a7a99f", margin: 0, textTransform: "uppercase" }}>
           Candidates
         </p>

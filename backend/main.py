@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "services"))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import analyse, candidates
+from routers import analyse, candidates, rewrite
 
 app = FastAPI(title="TalentScan API", version="1.0.0")
 
@@ -29,6 +29,7 @@ app.add_middleware(
 
 app.include_router(analyse.router, tags=["Analysis"])
 app.include_router(candidates.router, tags=["Candidates"])
+app.include_router(rewrite.router)
 
 
 @app.get("/health")
