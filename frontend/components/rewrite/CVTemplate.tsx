@@ -126,17 +126,11 @@ export function CVDocument({
           </View>
         )}
 
-        {/* ── Skills — tag chips, flex-wrap Views (not raw Text) avoids react-pdf wrapping bug ── */}
+        {/* ── Skills ── */}
         {skills.length > 0 && (
           <View style={styles.section}>
             <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Skills" />
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {skills.map((skill, i) => (
-                <View key={i} style={styles.skillTag}>
-                  <Text style={styles.skillTagText}>{skill}</Text>
-                </View>
-              ))}
-            </View>
+            <Text style={styles.body}>{skills.join("  ·  ")}</Text>
           </View>
         )}
 
@@ -253,13 +247,12 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
           paddingBottom: 46,
           paddingHorizontal: 52,
         },
-        // Subtle bottom rule separates identity block from body
-        header: { marginBottom: 0, paddingBottom: 14, borderBottomWidth: 0.75, borderBottomColor: "#dcdbd3", borderBottomStyle: "solid" },
+        header: { marginBottom: 14 },
         headerRule: {},
-        name: { fontSize: 24, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 6, letterSpacing: -0.3 },
-        targetRole: { fontSize: 10.5, color: "#555", marginBottom: 7, letterSpacing: 0.15 },
+        name: { fontSize: 24, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 3, letterSpacing: -0.2 },
+        targetRole: { fontSize: 10.5, color: "#444", marginBottom: 4, letterSpacing: 0.1 },
         contactLine: { fontSize: 8.5, color: "#777", letterSpacing: 0.1 },
-        section: { marginTop: 14, marginBottom: 10 },
+        section: { marginBottom: 14 },
         sectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: accent, letterSpacing: 0.8 },
         entry: { marginBottom: 10 },
         entryTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
@@ -268,8 +261,6 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         projectTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
         bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 8, flexShrink: 0 },
         body: { fontSize: 9.5, color: "#333", lineHeight: 1.55 },
-        skillTag: { backgroundColor: "#eef1f6", borderRadius: 3, paddingVertical: 2.5, paddingHorizontal: 8, marginRight: 5, marginBottom: 4 },
-        skillTagText: { fontSize: 8.5, color: "#2c3e58", fontFamily: "Helvetica" },
       }),
     };
   }
@@ -287,10 +278,10 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
           paddingBottom: 48,
           paddingHorizontal: 58,
         },
-        header: { marginBottom: 10, paddingBottom: 10 },
+        header: { marginBottom: 10 },
         headerRule: { borderBottomWidth: 1, borderBottomColor: "#1a1a1a", borderBottomStyle: "solid", marginBottom: 14 },
-        name: { fontSize: 23, fontFamily: "Times-Bold", color: accent, marginBottom: 7, letterSpacing: 0.3 },
-        targetRole: { fontSize: 10.5, fontFamily: "Times-Roman", color: "#444", marginBottom: 6, fontStyle: "italic" },
+        name: { fontSize: 22, fontFamily: "Times-Bold", color: accent, marginBottom: 2, letterSpacing: 0.3 },
+        targetRole: { fontSize: 10.5, fontFamily: "Times-Roman", color: "#333", marginBottom: 3 },
         contactLine: { fontSize: 9, color: "#666", letterSpacing: 0.1 },
         section: { marginBottom: 13 },
         sectionTitle: { fontSize: 10, fontFamily: "Times-Bold", color: "#111", letterSpacing: 0.5 },
@@ -301,8 +292,6 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         projectTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
         bulletDot: { fontSize: 10, color: "#555", marginRight: 5, width: 10, flexShrink: 0 },
         body: { fontSize: 10, fontFamily: "Times-Roman", color: "#222", lineHeight: 1.55 },
-        skillTag: { borderWidth: 0.5, borderColor: "#c5c5c5", borderRadius: 2, paddingVertical: 2.5, paddingHorizontal: 8, marginRight: 5, marginBottom: 4 },
-        skillTagText: { fontSize: 9.5, fontFamily: "Times-Roman", color: "#333" },
       }),
     };
   }
@@ -320,12 +309,12 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         paddingBottom: 52,
         paddingHorizontal: 54,
       },
-      header: { marginBottom: 0, paddingBottom: 14, borderBottomWidth: 0.75, borderBottomColor: "#d8d7cf", borderBottomStyle: "solid" },
-      headerRule: {},
-      name: { fontSize: 26, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 8, letterSpacing: -0.3 },
-      targetRole: { fontSize: 11, color: "#555", marginBottom: 8, letterSpacing: 0.1 },
+      header: { marginBottom: 18 },
+      headerRule: { borderBottomWidth: 0.5, borderBottomColor: "#ccc", borderBottomStyle: "solid", marginBottom: 18 },
+      name: { fontSize: 26, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 4 },
+      targetRole: { fontSize: 11, color: "#555", marginBottom: 5 },
       contactLine: { fontSize: 9, color: "#777", letterSpacing: 0.1 },
-      section: { marginTop: 18, marginBottom: 14 },
+      section: { marginBottom: 18 },
       sectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: accent, letterSpacing: 1.2 },
       entry: { marginBottom: 13 },
       entryTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#111" },
@@ -334,8 +323,6 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
       projectTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#111" },
       bulletDot: { fontSize: 10.5, color: accent, marginRight: 6, width: 9, flexShrink: 0 },
       body: { fontSize: 10.5, color: "#333", lineHeight: 1.6 },
-      skillTag: { backgroundColor: "rgba(29,53,87,0.07)", borderRadius: 4, paddingVertical: 3, paddingHorizontal: 9, marginRight: 6, marginBottom: 5 },
-      skillTagText: { fontSize: 9.5, color: "#2a3a50", fontFamily: "Helvetica" },
     }),
   };
 }
