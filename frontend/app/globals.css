@@ -9,8 +9,12 @@
   --color-sidebar: #fbfaf6;
   --color-coral: #f25c54;
   --color-hire: #5f8b2e;
+  --color-hire-text: #437a1a;
+  --color-hire-light: #7db83a;
   --color-maybe: #c5811c;
+  --color-maybe-text: #a06a12;
   --color-reject: #e84a45;
+  --color-reject-text: #c7302b;
 
   --font-sans: var(--font-sans), "Source Sans 3", sans-serif;
   --font-serif: var(--font-serif), "Source Serif 4", serif;
