@@ -53,12 +53,23 @@ export async function generateRewrite(
 export async function downloadPdf(
   rewritten: RewrittenCVLedger,
   accentColor: string = "#f25c54",
+  templateId: string = "ats",
 ): Promise<Blob> {
   const res = await fetch("/api/pdf", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rewritten, accentColor }),
+    body: JSON.stringify({ rewritten, accentColor, templateId }),
   });
   if (!res.ok) throw new Error("PDF generation failed");
+  return res.blob();
+}
+
+export async function downloadDocx(rewritten: RewrittenCVLedger): Promise<Blob> {
+  const res = await fetch("/api/docx", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rewritten }),
+  });
+  if (!res.ok) throw new Error("DOCX generation failed");
   return res.blob();
 }

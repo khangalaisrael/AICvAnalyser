@@ -1,8 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useStructureCv, useGenerateRewrite, useDownloadPdf } from "@/hooks/useRewrite";
+import {
+  useStructureCv,
+  useGenerateRewrite,
+  useDownloadPdf,
+  useDownloadDocx,
+} from "@/hooks/useRewrite";
 import { PdfDropzone } from "@/components/upload/PdfDropzone";
+import { TEMPLATES } from "@/components/rewrite/CVTemplate";
+import type {
+  TemplateId,
+} from "@/components/rewrite/CVTemplate";
 import type {
   CVLedger,
   RewrittenCVLedger,
@@ -10,13 +19,21 @@ import type {
   GenerateRewriteResponse,
 } from "@/lib/types";
 
-/* ── helpers ──────────────────────────────────────────────────────────── */
-
+/* ── design tokens ─────────────────────────────────────────────────────── */
 const CORAL = "#f25c54";
 const FG = "#22272f";
 const MUTED = "#7c818b";
 const BORDER = "#ecebe3";
 const BG_CARD = "#ffffff";
+
+const ACCENT_SWATCHES = [
+  { color: "#f25c54", label: "Coral" },
+  { color: "#2563eb", label: "Ocean" },
+  { color: "#059669", label: "Forest" },
+  { color: "#7c3aed", label: "Violet" },
+];
+
+/* ── shared sub-components ─────────────────────────────────────────────── */
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -28,7 +45,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function ScoreBadge({ score, label }: { score: number; label: string }) {
   const color = score >= 70 ? "#437a1a" : score >= 45 ? "#a06a12" : "#c7302b";
-  const bg = score >= 70 ? "rgba(95,139,46,0.10)" : score >= 45 ? "rgba(197,129,28,0.10)" : "rgba(232,74,69,0.10)";
   return (
     <div style={{ textAlign: "center" }}>
       <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.04em", color }}>{score}</div>
@@ -60,7 +76,9 @@ function StepDots({ step }: { step: number }) {
                 transition: "background 0.2s",
               }}>
                 {done ? (
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 ) : (
                   <span style={{ fontSize: 11, fontWeight: 700, color: active ? "white" : MUTED }}>{i + 1}</span>
                 )}
@@ -75,11 +93,9 @@ function StepDots({ step }: { step: number }) {
   );
 }
 
-/* ── Step 1: Upload + role ────────────────────────────────────────────── */
+/* ── Step 1: Upload ─────────────────────────────────────────────────────── */
 
-function StepUpload({
-  file, onFile, role, onRole, onNext, loading, error,
-}: {
+function StepUpload({ file, onFile, role, onRole, onNext, loading, error }: {
   file: File | null;
   onFile: (f: File | null) => void;
   role: string;
@@ -121,9 +137,7 @@ function StepUpload({
         <PdfDropzone file={file} onFile={onFile} />
       </div>
 
-      {error && (
-        <p style={{ fontSize: 13, color: "#c7302b", margin: "0 0 16px" }}>{error}</p>
-      )}
+      {error && <p style={{ fontSize: 13, color: "#c7302b", margin: "0 0 16px" }}>{error}</p>}
 
       <button
         onClick={onNext}
@@ -154,11 +168,9 @@ function StepUpload({
   );
 }
 
-/* ── Step 2: Review extracted ledger ─────────────────────────────────── */
+/* ── Step 2: Review ledger ──────────────────────────────────────────────── */
 
-function StepReview({
-  ledger, atsBefore, onNext, loading, role,
-}: {
+function StepReview({ ledger, atsBefore, onNext, loading, role }: {
   ledger: CVLedger;
   atsBefore: number;
   onNext: () => void;
@@ -181,11 +193,7 @@ function StepReview({
         </div>
       </div>
 
-      <div style={{
-        border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD,
-        overflow: "hidden", marginBottom: 20,
-      }}>
-        {/* Contact */}
+      <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD, overflow: "hidden", marginBottom: 20 }}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}` }}>
           <SectionLabel>Contact</SectionLabel>
           <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: FG }}>{ledger.contact.name || "—"}</p>
@@ -194,7 +202,6 @@ function StepReview({
           </p>
         </div>
 
-        {/* Summary */}
         {ledger.summary && (
           <div style={{ padding: "14px 20px", borderBottom: `1px solid ${BORDER}` }}>
             <SectionLabel>Summary</SectionLabel>
@@ -202,7 +209,6 @@ function StepReview({
           </div>
         )}
 
-        {/* Experience */}
         {ledger.experience.length > 0 && (
           <div style={{ padding: "14px 20px", borderBottom: `1px solid ${BORDER}` }}>
             <SectionLabel>Experience ({ledger.experience.length} roles)</SectionLabel>
@@ -223,7 +229,6 @@ function StepReview({
           </div>
         )}
 
-        {/* Education */}
         {ledger.education.length > 0 && (
           <div style={{ padding: "14px 20px", borderBottom: `1px solid ${BORDER}` }}>
             <SectionLabel>Education</SectionLabel>
@@ -236,7 +241,6 @@ function StepReview({
           </div>
         )}
 
-        {/* Skills */}
         {ledger.skills.length > 0 && (
           <div style={{ padding: "14px 20px" }}>
             <SectionLabel>Skills ({ledger.skills.length})</SectionLabel>
@@ -264,13 +268,13 @@ function StepReview({
           opacity: loading ? 0.7 : 1,
         }}
       >
-        {loading ? "Rewriting your CV…" : "Rewrite toward " + role + " →"}
+        {loading ? "Rewriting your CV…" : `Rewrite toward ${role} →`}
       </button>
     </div>
   );
 }
 
-/* ── Step 3: Before / after + metric prompts + download ─────────────── */
+/* ── Step 3: Before/after + template picker + download ─────────────────── */
 
 function BulletComparison({ originalText, rewritten }: {
   originalText: string;
@@ -289,15 +293,20 @@ function BulletComparison({ originalText, rewritten }: {
         </div>
       )}
       <div style={{
-        fontSize: 12.5, color: FG, background: changed ? "rgba(95,139,46,0.06)" : "transparent",
-        borderLeft: changed ? `2px solid #5f8b2e` : "none",
+        fontSize: 12.5, color: FG,
+        background: changed ? "rgba(95,139,46,0.06)" : "transparent",
+        borderLeft: changed ? "2px solid #5f8b2e" : "none",
         borderRadius: changed ? "0 6px 6px 0" : 0,
         padding: changed ? "5px 10px" : "2px 0",
         lineHeight: 1.55,
       }}>
         {rewritten.text}
         {rewritten.needs_metric && (
-          <span style={{ fontSize: 10.5, color: "#a06a12", background: "rgba(197,129,28,0.10)", borderRadius: 4, padding: "1px 5px", marginLeft: 6 }}>
+          <span style={{
+            fontSize: 10.5, color: "#a06a12",
+            background: "rgba(197,129,28,0.10)", borderRadius: 4,
+            padding: "1px 5px", marginLeft: 6,
+          }}>
             needs metric
           </span>
         )}
@@ -306,22 +315,133 @@ function BulletComparison({ originalText, rewritten }: {
   );
 }
 
+function TemplatePicker({
+  selected, onSelect, accentColor, onAccent,
+}: {
+  selected: TemplateId;
+  onSelect: (id: TemplateId) => void;
+  accentColor: string;
+  onAccent: (c: string) => void;
+}) {
+  const atsRatingColor = (r: string) =>
+    r === "Highest" ? "#437a1a" : r === "High" ? "#a06a12" : "#7c818b";
+
+  return (
+    <div style={{
+      border: `1px solid ${BORDER}`, borderRadius: 14,
+      background: BG_CARD, padding: "18px 20px", marginBottom: 20,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <SectionLabel>Template</SectionLabel>
+        {/* Accent colour */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: MUTED }}>Accent</span>
+          {ACCENT_SWATCHES.map(({ color, label }) => (
+            <button
+              key={color}
+              title={label}
+              onClick={() => onAccent(color)}
+              style={{
+                width: 20, height: 20, borderRadius: "50%",
+                background: color, border: "none", cursor: "pointer", padding: 0,
+                outline: accentColor === color ? `2px solid ${color}` : "none",
+                outlineOffset: 2,
+                transition: "outline 0.12s",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        {TEMPLATES.map((t) => {
+          const active = selected === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onSelect(t.id)}
+              style={{
+                textAlign: "left", background: active ? "#faf9f5" : "#fff",
+                border: `1.5px solid ${active ? FG : BORDER}`,
+                borderRadius: 12, padding: "14px 14px 12px",
+                cursor: "pointer", fontFamily: "inherit",
+                transition: "border-color 0.15s, background 0.15s",
+                position: "relative",
+              }}
+            >
+              {/* Top row: name + ATS rating */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: FG }}>{t.name}</span>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: atsRatingColor(t.atsRating),
+                  background: `${atsRatingColor(t.atsRating)}18`,
+                  borderRadius: 99, padding: "2px 7px", marginLeft: 6, flexShrink: 0,
+                }}>
+                  {t.atsRating}
+                </span>
+              </div>
+
+              {/* "Highly recommended" badge — only on ATS template */}
+              {t.id === "ats" && (
+                <div style={{
+                  fontSize: 10, fontWeight: 700, color: "#437a1a",
+                  background: "rgba(95,139,46,0.10)",
+                  borderRadius: 4, padding: "2px 6px",
+                  display: "inline-block", marginBottom: 6,
+                }}>
+                  ★ Highly recommended
+                </div>
+              )}
+
+              <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 6px", lineHeight: 1.5 }}>{t.description}</p>
+              <p style={{ fontSize: 11, color: "#888", margin: 0, fontStyle: "italic" }}>{t.recommendedFor}</p>
+
+              {/* Selected checkmark */}
+              {active && (
+                <div style={{
+                  position: "absolute", top: 10, right: 10,
+                  width: 18, height: 18, borderRadius: "50%",
+                  background: FG, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5l2.5 2.5 3.5-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function StepResult({
-  result, ledger, role, onRefine, onDownload, downloading,
+  result, ledger, role,
+  selectedTemplate, onTemplate,
+  accentColor, onAccent,
+  onRefine,
+  onDownloadPdf, downloadingPdf,
+  onDownloadDocx, downloadingDocx,
 }: {
   result: GenerateRewriteResponse;
   ledger: CVLedger;
   role: string;
+  selectedTemplate: TemplateId;
+  onTemplate: (id: TemplateId) => void;
+  accentColor: string;
+  onAccent: (c: string) => void;
   onRefine: (answers: Record<string, string>) => void;
-  onDownload: () => void;
-  downloading: boolean;
+  onDownloadPdf: () => void;
+  downloadingPdf: boolean;
+  onDownloadDocx: () => void;
+  downloadingDocx: boolean;
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showMetrics, setShowMetrics] = useState(false);
   const { rewritten, ats_score_before, ats_score_after, metric_prompts, verified, flagged_items } = result;
   const delta = ats_score_after - ats_score_before;
 
-  // Build a lookup of original bullet text by id
   const originalByBulletId: Record<string, string> = {};
   for (const exp of ledger.experience) {
     for (const b of exp.bullets) originalByBulletId[b.id] = b.text;
@@ -332,6 +452,7 @@ function StepResult({
 
   return (
     <div style={{ maxWidth: 720 }}>
+      {/* Header + scores */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", color: FG, margin: "0 0 4px" }}>
@@ -341,8 +462,6 @@ function StepResult({
             Every change traces to your original. Nothing invented.
           </p>
         </div>
-
-        {/* ATS score delta */}
         <div style={{
           display: "flex", gap: 20, alignItems: "center",
           border: `1px solid ${BORDER}`, borderRadius: 12, padding: "14px 20px",
@@ -379,7 +498,7 @@ function StepResult({
         </div>
       )}
 
-      {/* Before / after by section */}
+      {/* Before / after bullets */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD, overflow: "hidden", marginBottom: 20 }}>
         {rewritten.experience.map((exp) => {
           const orig = ledger.experience.find((e) => e.id === exp.id);
@@ -420,7 +539,7 @@ function StepResult({
         })}
       </div>
 
-      {/* Metric prompts — optional refinement */}
+      {/* Metric prompts */}
       {metric_prompts.length > 0 && (
         <div style={{
           border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD,
@@ -483,53 +602,58 @@ function StepResult({
         </div>
       )}
 
-      {/* Template recommendation */}
-      <div style={{
-        border: `1px solid ${BORDER}`, borderRadius: 14, background: BG_CARD,
-        padding: "16px 20px", marginBottom: 20,
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: FG, margin: "0 0 2px" }}>
-              ATS-Optimised template
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#437a1a", background: "rgba(95,139,46,0.10)", borderRadius: 99, padding: "2px 8px", marginLeft: 8 }}>
-                Recommended
-              </span>
-            </p>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: 0 }}>
-              Single column · real selectable text · ATS score {ats_score_after}/100
-            </p>
-            <p style={{ fontSize: 11.5, color: MUTED, margin: "4px 0 0", fontStyle: "italic" }}>
-              Best for online application portals and ATS systems.
-            </p>
-          </div>
-        </div>
+      {/* Template + colour picker */}
+      <TemplatePicker
+        selected={selectedTemplate}
+        onSelect={onTemplate}
+        accentColor={accentColor}
+        onAccent={onAccent}
+      />
+
+      {/* Download buttons */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {/* PDF */}
+        <button
+          onClick={onDownloadPdf}
+          disabled={downloadingPdf}
+          style={{
+            padding: "14px 0", background: CORAL, color: "white",
+            border: "none", borderRadius: 11, fontSize: 14, fontWeight: 700,
+            cursor: downloadingPdf ? "not-allowed" : "pointer",
+            fontFamily: "inherit", opacity: downloadingPdf ? 0.7 : 1,
+            boxShadow: "0 4px 16px rgba(242,92,84,0.25)",
+            transition: "opacity 0.15s",
+          }}
+        >
+          {downloadingPdf ? "Generating…" : "Download PDF ↓"}
+        </button>
+
+        {/* DOCX */}
+        <button
+          onClick={onDownloadDocx}
+          disabled={downloadingDocx}
+          style={{
+            padding: "14px 0", background: "#fff", color: FG,
+            border: `1.5px solid ${BORDER}`, borderRadius: 11, fontSize: 14, fontWeight: 700,
+            cursor: downloadingDocx ? "not-allowed" : "pointer",
+            fontFamily: "inherit", opacity: downloadingDocx ? 0.7 : 1,
+            transition: "opacity 0.15s, border-color 0.15s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = FG)}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = BORDER)}
+        >
+          {downloadingDocx ? "Generating…" : "Download DOCX (editable) ↓"}
+        </button>
       </div>
 
-      {/* Download */}
-      <button
-        onClick={onDownload}
-        disabled={downloading}
-        style={{
-          width: "100%", padding: "14px 0",
-          background: CORAL, color: "white",
-          border: "none", borderRadius: 11, fontSize: 15, fontWeight: 700,
-          cursor: downloading ? "not-allowed" : "pointer",
-          fontFamily: "inherit", opacity: downloading ? 0.7 : 1,
-          boxShadow: "0 4px 16px rgba(242,92,84,0.28)",
-          transition: "opacity 0.15s",
-        }}
-      >
-        {downloading ? "Generating PDF…" : "Download PDF ↓"}
-      </button>
-      <p style={{ fontSize: 12, color: MUTED, textAlign: "center", marginTop: 8 }}>
-        ATS score validated · real selectable text · no images
+      <p style={{ fontSize: 11.5, color: MUTED, textAlign: "center", marginTop: 8 }}>
+        PDF: ATS score validated · real selectable text &nbsp;·&nbsp; DOCX: opens in Word, Google Docs, LibreOffice
       </p>
     </div>
   );
 }
 
-/* ── Main page ────────────────────────────────────────────────────────── */
+/* ── Main page ────────────────────────────────────────────────────────────── */
 
 type Step = 0 | 1 | 2;
 
@@ -541,10 +665,13 @@ export default function RewritePage() {
   const [cvText, setCvText] = useState("");
   const [atsBefore, setAtsBefore] = useState(0);
   const [result, setResult] = useState<GenerateRewriteResponse | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("ats");
+  const [accentColor, setAccentColor] = useState(CORAL);
 
   const structure = useStructureCv();
   const generate = useGenerateRewrite();
-  const downloadPdf = useDownloadPdf();
+  const pdfDownload = useDownloadPdf();
+  const docxDownload = useDownloadDocx();
 
   function handleExtract() {
     if (!file) return;
@@ -571,20 +698,33 @@ export default function RewritePage() {
     );
   }
 
-  function handleDownload() {
+  function handleDownloadPdf() {
     if (!result) return;
     const name = result.rewritten?.contact?.name ?? "candidate";
-    const filename = `${name.replace(/\s+/g, "-").toLowerCase()}-${role.replace(/\s+/g, "-").toLowerCase()}.pdf`;
-    downloadPdf.mutate({ rewritten: result.rewritten as RewrittenCVLedger, filename });
+    pdfDownload.mutate({
+      rewritten: result.rewritten as RewrittenCVLedger,
+      accentColor,
+      templateId: selectedTemplate,
+      filename: `${name.replace(/\s+/g, "-").toLowerCase()}-${role.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+    });
+  }
+
+  function handleDownloadDocx() {
+    if (!result) return;
+    const name = result.rewritten?.contact?.name ?? "candidate";
+    docxDownload.mutate({
+      rewritten: result.rewritten as RewrittenCVLedger,
+      filename: `${name.replace(/\s+/g, "-").toLowerCase()}-${role.replace(/\s+/g, "-").toLowerCase()}.docx`,
+    });
   }
 
   const structureError = structure.isError
-    ? (structure.error as Error)?.message?.includes("scanned") ? "This PDF appears to be a scanned image — please use a text-based PDF." : "Extraction failed — please try again."
+    ? (structure.error as Error)?.message?.includes("scanned")
+      ? "This PDF appears to be a scanned image — please use a text-based PDF."
+      : "Extraction failed — please try again."
     : null;
 
-  const generateError = generate.isError
-    ? "Rewrite failed — please try again."
-    : null;
+  const generateError = generate.isError ? "Rewrite failed — please try again." : null;
 
   return (
     <div style={{ padding: "40px 48px", maxWidth: 800 }}>
@@ -592,10 +732,8 @@ export default function RewritePage() {
 
       {step === 0 && (
         <StepUpload
-          file={file}
-          onFile={setFile}
-          role={role}
-          onRole={setRole}
+          file={file} onFile={setFile}
+          role={role} onRole={setRole}
           onNext={handleExtract}
           loading={structure.isPending}
           error={structureError}
@@ -604,9 +742,7 @@ export default function RewritePage() {
 
       {step === 1 && ledger && (
         <StepReview
-          ledger={ledger}
-          atsBefore={atsBefore}
-          role={role}
+          ledger={ledger} atsBefore={atsBefore} role={role}
           onNext={() => handleGenerate()}
           loading={generate.isPending}
         />
@@ -618,12 +754,12 @@ export default function RewritePage() {
 
       {step === 2 && result && ledger && (
         <StepResult
-          result={result}
-          ledger={ledger}
-          role={role}
+          result={result} ledger={ledger} role={role}
+          selectedTemplate={selectedTemplate} onTemplate={setSelectedTemplate}
+          accentColor={accentColor} onAccent={setAccentColor}
           onRefine={(answers) => handleGenerate(answers)}
-          onDownload={handleDownload}
-          downloading={downloadPdf.isPending}
+          onDownloadPdf={handleDownloadPdf} downloadingPdf={pdfDownload.isPending}
+          onDownloadDocx={handleDownloadDocx} downloadingDocx={docxDownload.isPending}
         />
       )}
     </div>

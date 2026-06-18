@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { structureCv, generateRewrite, downloadPdf } from "@/lib/api-rewrite";
+import { structureCv, generateRewrite, downloadPdf, downloadDocx } from "@/lib/api-rewrite";
 import type { CVLedger, RewrittenCVLedger } from "@/lib/types";
 
 export function useStructureCv() {
@@ -31,17 +31,39 @@ export function useDownloadPdf() {
     mutationFn: ({
       rewritten,
       accentColor,
+      templateId,
       filename,
     }: {
       rewritten: RewrittenCVLedger;
       accentColor?: string;
+      templateId?: string;
       filename?: string;
     }) =>
-      downloadPdf(rewritten, accentColor).then((blob) => {
+      downloadPdf(rewritten, accentColor, templateId).then((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = filename ?? "cv-rewritten.pdf";
+        a.click();
+        URL.revokeObjectURL(url);
+      }),
+  });
+}
+
+export function useDownloadDocx() {
+  return useMutation({
+    mutationFn: ({
+      rewritten,
+      filename,
+    }: {
+      rewritten: RewrittenCVLedger;
+      filename?: string;
+    }) =>
+      downloadDocx(rewritten).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename ?? "cv-rewritten.docx";
         a.click();
         URL.revokeObjectURL(url);
       }),
