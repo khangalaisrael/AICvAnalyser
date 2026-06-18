@@ -205,7 +205,7 @@ function SectionHeader({
     return (
       <View style={{ marginBottom: 7 }}>
         <Text style={styles.sectionTitle}>{label.toUpperCase()}</Text>
-        <View style={{ borderBottomWidth: 0.75, borderBottomColor: "#1a1a1a", borderBottomStyle: "solid", marginTop: 3 }} />
+        <View style={{ borderBottomWidth: 0.75, borderBottomColor: accentColor, borderBottomStyle: "solid", marginTop: 3 }} />
       </View>
     );
   }
@@ -284,13 +284,13 @@ function makeStyles(templateId: TemplateId, accent: string): Record<string, any>
         targetRole: { fontSize: 10.5, fontFamily: "Times-Roman", color: "#333", marginBottom: 3 },
         contactLine: { fontSize: 9, color: "#666", letterSpacing: 0.1 },
         section: { marginBottom: 13 },
-        sectionTitle: { fontSize: 10, fontFamily: "Times-Bold", color: "#111", letterSpacing: 0.5 },
+        sectionTitle: { fontSize: 10, fontFamily: "Times-Bold", color: accent, letterSpacing: 0.5 },
         entry: { marginBottom: 9 },
         entryTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
         entryOrg: { fontSize: 10, fontFamily: "Times-Roman", color: "#444", marginBottom: 3 },
         entryDate: { fontSize: 9, color: "#777", marginLeft: 8, flexShrink: 0 },
         projectTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
-        bulletDot: { fontSize: 10, color: "#555", marginRight: 5, width: 10, flexShrink: 0 },
+        bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 10, flexShrink: 0 },
         body: { fontSize: 10, fontFamily: "Times-Roman", color: "#222", lineHeight: 1.55 },
       }),
     };
