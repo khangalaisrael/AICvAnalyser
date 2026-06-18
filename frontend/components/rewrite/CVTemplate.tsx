@@ -1,14 +1,24 @@
 /**
  * ATS-safe CV templates for @react-pdf/renderer.
- * All templates: single column, real selectable text, no images.
- * Used server-side in /api/pdf/route.tsx.
+ *
+ * Recruiter research baked in:
+ *   - Single column, reverse-chronological
+ *   - Six fixation points instantly findable (name, title, org, dates, prev role, education)
+ *   - Contact in body — never header/footer (some parsers skip header/footer text)
+ *   - Strongest content in top third; first bullet = best achievement
+ *   - Generous white space (>20%) — cramped CVs get shorter dwell time
+ *   - One navy accent on name + headings only; never body text
+ *   - Section order: Profile → Experience → Skills → Education → Projects
+ *
+ * Classic uses Times-Roman (built-in PDF serif, fully ATS-parseable).
+ * Modern and Compact use Helvetica.
  */
 import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import type { RewrittenCVLedger } from "@/lib/types";
 
 Font.registerHyphenationCallback((word) => [word]);
 
-export type TemplateId = "ats" | "modern" | "classic";
+export type TemplateId = "modern" | "classic" | "compact";
 
 export interface TemplateConfig {
   id: TemplateId;
@@ -22,30 +32,30 @@ export interface TemplateConfig {
 
 export const TEMPLATES: TemplateConfig[] = [
   {
-    id: "ats",
-    name: "ATS-Optimised",
-    description: "Single column, plain Helvetica, zero decoration. Parses cleanly in every system.",
-    tag: "Online portals",
-    atsRating: "Highest",
-    recommendedFor: "Submitting through an online application portal or ATS.",
-    isDefault: true,
-  },
-  {
     id: "modern",
-    name: "Modern Professional",
-    description: "Polished single-column with subtle section styling. Still fully ATS-safe.",
-    tag: "Email to recruiter",
-    atsRating: "High",
-    recommendedFor: "Emailing directly to a recruiter or hiring manager.",
-    isDefault: false,
+    name: "Modern",
+    description: "Clean Helvetica, navy accent on name + headings, subtle letter-spacing on headers. Single column, generous white space.",
+    tag: "Tech / startups / product",
+    atsRating: "Highest",
+    recommendedFor: "Tech, startups, product, marketing — the universally safe choice for most roles.",
+    isDefault: true,
   },
   {
     id: "classic",
     name: "Classic",
-    description: "Formal, traditional, high information density. Great for senior profiles.",
-    tag: "In-person / senior",
-    atsRating: "Good",
-    recommendedFor: "Senior roles, handing over in person, or very formal industries.",
+    description: "Times-Roman serif throughout, navy on name only, thin horizontal rules. Formal and authoritative.",
+    tag: "Finance / law / senior",
+    atsRating: "Highest",
+    recommendedFor: "Finance, law, government, academia, and senior corporate roles.",
+    isDefault: false,
+  },
+  {
+    id: "compact",
+    name: "Compact",
+    description: "Slightly larger type with generous spacing — makes a shorter CV look intentional and full, not thin.",
+    tag: "Students / career changers",
+    atsRating: "Highest",
+    recommendedFor: "Students, graduates, and career changers with less content to fill a page.",
     isDefault: false,
   },
 ];
@@ -54,33 +64,39 @@ export interface CVDocumentProps {
   rewritten: RewrittenCVLedger;
   templateId?: TemplateId;
   accentColor?: string;
+  targetRole?: string;
 }
 
 export function CVDocument({
   rewritten,
-  templateId = "ats",
-  accentColor = "#f25c54",
+  templateId = "modern",
+  accentColor = "#1d3557",
+  targetRole,
 }: CVDocumentProps) {
   const { contact, summary, experience, education, skills, projects } = rewritten;
   const styles = makeStyles(templateId, accentColor);
+
+  // Contact on a single text line — never in header/footer region
   const contactLine = [contact.email, contact.phone, contact.location, ...(contact.links ?? [])]
     .filter(Boolean)
     .join("  ·  ");
+
+  const bulletChar = templateId === "classic" ? "–" : "•";
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
 
-        {/* Header */}
+        {/* ── Header block ── */}
         <View style={styles.header}>
           <Text style={styles.name}>{contact.name || "Your Name"}</Text>
+          {targetRole && <Text style={styles.targetRole}>{targetRole}</Text>}
           {contactLine ? <Text style={styles.contactLine}>{contactLine}</Text> : null}
         </View>
 
-        {/* Divider below header (modern + classic) */}
-        {templateId !== "ats" && <View style={styles.headerDivider} />}
+        {templateId !== "modern" && <View style={styles.headerRule} />}
 
-        {/* Summary */}
+        {/* ── Profile / Summary ── */}
         {summary ? (
           <View style={styles.section}>
             <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Profile" />
@@ -88,10 +104,10 @@ export function CVDocument({
           </View>
         ) : null}
 
-        {/* Experience */}
+        {/* ── Experience (fixations 2–5 — strongest content) ── */}
         {experience.length > 0 && (
           <View style={styles.section}>
-            <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Experience" />
+            <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Work Experience" />
             {experience.map((exp) => (
               <View key={exp.id} style={styles.entry}>
                 <View style={styles.entryRow}>
@@ -101,7 +117,7 @@ export function CVDocument({
                 <Text style={styles.entryOrg}>{exp.org}</Text>
                 {exp.bullets.map((b) => (
                   <View key={b.id} style={styles.bulletRow}>
-                    <Text style={styles.bulletDot}>{templateId === "classic" ? "–" : "•"}</Text>
+                    <Text style={styles.bulletDot}>{bulletChar}</Text>
                     <Text style={styles.bulletText}>{b.text}</Text>
                   </View>
                 ))}
@@ -110,7 +126,7 @@ export function CVDocument({
           </View>
         )}
 
-        {/* Skills */}
+        {/* ── Skills — before education per recruiter scan research ── */}
         {skills.length > 0 && (
           <View style={styles.section}>
             <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Skills" />
@@ -118,28 +134,7 @@ export function CVDocument({
           </View>
         )}
 
-        {/* Projects */}
-        {projects.length > 0 && (
-          <View style={styles.section}>
-            <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Projects" />
-            {projects.map((proj) => (
-              <View key={proj.id} style={styles.entry}>
-                {/* Explicit column + no flex:1 on title fixes the overlap bug */}
-                <View style={{ marginBottom: 4 }}>
-                  <Text style={styles.projectTitle}>{proj.name}</Text>
-                </View>
-                {proj.bullets.map((b) => (
-                  <View key={b.id} style={styles.bulletRow}>
-                    <Text style={styles.bulletDot}>{templateId === "classic" ? "–" : "•"}</Text>
-                    <Text style={styles.bulletText}>{b.text}</Text>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Education */}
+        {/* ── Education (fixation 6) ── */}
         {education.length > 0 && (
           <View style={styles.section}>
             <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Education" />
@@ -155,36 +150,71 @@ export function CVDocument({
           </View>
         )}
 
+        {/* ── Projects / Certifications ── */}
+        {projects.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader styles={styles} templateId={templateId} accentColor={accentColor} label="Projects" />
+            {projects.map((proj) => (
+              <View key={proj.id} style={styles.entry}>
+                {/* Block wrapper prevents flex overlap bug */}
+                <View style={{ marginBottom: 3 }}>
+                  <Text style={styles.projectTitle}>{proj.name}</Text>
+                </View>
+                {proj.bullets.map((b) => (
+                  <View key={b.id} style={styles.bulletRow}>
+                    <Text style={styles.bulletDot}>{bulletChar}</Text>
+                    <Text style={styles.bulletText}>{b.text}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+
       </Page>
     </Document>
   );
 }
 
-/* ── Section header renders differently per template ────────── */
+/* ── Section headers differ by template ── */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function SectionHeader({ styles, templateId, accentColor, label }: { styles: any; templateId: TemplateId; accentColor: string; label: string }) {
-  if (templateId === "ats") {
-    return (
-      <View style={{ marginBottom: 8 }}>
-        <Text style={styles.sectionTitle}>{label.toUpperCase()}</Text>
-        <View style={{ borderBottomWidth: 0.75, borderBottomColor: accentColor, borderBottomStyle: "solid", opacity: 0.35 }} />
-      </View>
-    );
-  }
+function SectionHeader({
+  styles, templateId, accentColor, label,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  styles: any;
+  templateId: TemplateId;
+  accentColor: string;
+  label: string;
+}) {
   if (templateId === "modern") {
+    // Navy accent bar + sentence-case label
     return (
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 8 }}>
-        <View style={{ width: 3, height: 11, backgroundColor: accentColor, borderRadius: 2 }} />
-        <Text style={styles.sectionTitle}>{label}</Text>
+      <View style={{ marginBottom: 7 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 3 }}>
+          <View style={{ width: 3, height: 10, backgroundColor: accentColor, borderRadius: 1 }} />
+          <Text style={styles.sectionTitle}>{label}</Text>
+        </View>
+        <View style={{ borderBottomWidth: 0.5, borderBottomColor: "#d4d4d4", borderBottomStyle: "solid" }} />
       </View>
     );
   }
-  // classic
+
+  if (templateId === "classic") {
+    // Uppercase + thin rule below — traditional serif look
+    return (
+      <View style={{ marginBottom: 7 }}>
+        <Text style={styles.sectionTitle}>{label.toUpperCase()}</Text>
+        <View style={{ borderBottomWidth: 0.75, borderBottomColor: "#1a1a1a", borderBottomStyle: "solid", marginTop: 3 }} />
+      </View>
+    );
+  }
+
+  // compact — clean, slightly spaced uppercase
   return (
     <View style={{ marginBottom: 8 }}>
       <Text style={styles.sectionTitle}>{label.toUpperCase()}</Text>
-      <View style={{ borderBottomWidth: 1.5, borderBottomColor: "#1a1a1a", borderBottomStyle: "solid", marginTop: 2 }} />
+      <View style={{ borderBottomWidth: 0.5, borderBottomColor: accentColor, borderBottomStyle: "solid", marginTop: 3, opacity: 0.5 }} />
     </View>
   );
 }
@@ -193,73 +223,113 @@ function SectionHeader({ styles, templateId, accentColor, label }: { styles: any
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeStyles(templateId: TemplateId, accent: string): Record<string, any> {
-  // Shared row/text styles with literal types preserved via `as const`
+  // Shared row/text helpers — as const preserves literal types for react-pdf
   const shared = {
-    body: { fontSize: 10, color: "#333", lineHeight: 1.5 },
     entryRow: {
       flexDirection: "row" as const,
       justifyContent: "space-between" as const,
       alignItems: "flex-start" as const,
     },
-    entryDate: { fontSize: 9, color: "#777", marginLeft: 8, flexShrink: 0 },
-    entryOrg: { fontSize: 9.5, color: "#555", marginBottom: 4 },
-    bulletRow: { flexDirection: "row" as const, marginBottom: 2, paddingLeft: 2 },
-    bulletText: { fontSize: 9.5, color: "#333", flex: 1, lineHeight: 1.45 },
+    bulletRow: { flexDirection: "row" as const, marginBottom: 2.5, paddingLeft: 0 },
+    bulletText: { fontSize: 9.5, color: "#222", flex: 1, lineHeight: 1.5 },
   };
-
-  if (templateId === "ats") {
-    return {
-      ...shared,
-      ...StyleSheet.create({
-        page: { fontFamily: "Helvetica", fontSize: 10, color: "#1a1a1a", lineHeight: 1.45, paddingTop: 44, paddingBottom: 44, paddingHorizontal: 52 },
-        header: { marginBottom: 14 },
-        headerDivider: {},
-        name: { fontSize: 22, fontFamily: "Helvetica-Bold", color: "#111", marginBottom: 3, letterSpacing: 0.3 },
-        contactLine: { fontSize: 9, color: "#555" },
-        section: { marginBottom: 14 },
-        sectionTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: accent, letterSpacing: 1, marginBottom: 3 },
-        entry: { marginBottom: 9 },
-        entryTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
-        projectTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
-        bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 8, flexShrink: 0 },
-      }),
-    };
-  }
 
   if (templateId === "modern") {
     return {
       ...shared,
       ...StyleSheet.create({
-        page: { fontFamily: "Helvetica", fontSize: 10, color: "#1a1a1a", lineHeight: 1.45, paddingTop: 48, paddingBottom: 48, paddingHorizontal: 54 },
-        header: { marginBottom: 6 },
-        headerDivider: { borderBottomWidth: 1, borderBottomColor: "#e0e0e0", borderBottomStyle: "solid", marginBottom: 14 },
-        name: { fontSize: 24, fontFamily: "Helvetica-Bold", color: "#111", marginBottom: 4, letterSpacing: -0.3 },
-        contactLine: { fontSize: 9, color: "#666", marginBottom: 10 },
-        section: { marginBottom: 16 },
-        sectionTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: "#1a1a1a", letterSpacing: 0.3 },
-        entry: { marginBottom: 11 },
-        entryTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: "#111" },
-        projectTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold", color: "#111" },
-        bulletDot: { fontSize: 10, color: accent, marginRight: 6, width: 8, flexShrink: 0 },
+        page: {
+          fontFamily: "Helvetica",
+          fontSize: 10,
+          color: "#1a1a1a",
+          lineHeight: 1.4,
+          paddingTop: 46,
+          paddingBottom: 46,
+          paddingHorizontal: 52,
+        },
+        header: { marginBottom: 14 },
+        headerRule: {},
+        // Name in navy accent — fixation point 1
+        name: { fontSize: 24, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 3, letterSpacing: -0.2 },
+        // Target role subtitle — orients the recruiter immediately
+        targetRole: { fontSize: 10.5, color: "#444", marginBottom: 4, letterSpacing: 0.1 },
+        contactLine: { fontSize: 8.5, color: "#666" },
+        section: { marginBottom: 14 },
+        // Letter-spacing on section headings — navy, sentence-case
+        sectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: accent, letterSpacing: 0.8 },
+        entry: { marginBottom: 10 },
+        entryTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
+        entryOrg: { fontSize: 9.5, color: "#555", marginBottom: 3 },
+        entryDate: { fontSize: 8.5, color: "#888", marginLeft: 8, flexShrink: 0 },
+        projectTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
+        bulletDot: { fontSize: 10, color: accent, marginRight: 5, width: 8, flexShrink: 0 },
+        body: { fontSize: 9.5, color: "#333", lineHeight: 1.55 },
       }),
     };
   }
 
-  // classic
+  if (templateId === "classic") {
+    return {
+      ...shared,
+      ...StyleSheet.create({
+        page: {
+          fontFamily: "Times-Roman",
+          fontSize: 10.5,
+          color: "#111",
+          lineHeight: 1.4,
+          paddingTop: 48,
+          paddingBottom: 48,
+          paddingHorizontal: 58,
+        },
+        header: { marginBottom: 10 },
+        // Thin rule below header — traditional divider
+        headerRule: { borderBottomWidth: 0.5, borderBottomColor: "#aaa", borderBottomStyle: "solid", marginBottom: 14 },
+        // Name in accent (navy), large Times-Bold — serif gravitas
+        name: { fontSize: 22, fontFamily: "Times-Bold", color: accent, marginBottom: 2, letterSpacing: 0.3 },
+        targetRole: { fontSize: 10.5, fontFamily: "Times-Roman", color: "#333", marginBottom: 3 },
+        contactLine: { fontSize: 9, color: "#555" },
+        section: { marginBottom: 13 },
+        // Section headings in Times-Bold, navy only on name — Classic keeps headings dark
+        sectionTitle: { fontSize: 10, fontFamily: "Times-Bold", color: "#111", letterSpacing: 0.5 },
+        entry: { marginBottom: 9 },
+        entryTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
+        entryOrg: { fontSize: 10, fontFamily: "Times-Roman", color: "#444", marginBottom: 3 },
+        entryDate: { fontSize: 9, color: "#777", marginLeft: 8, flexShrink: 0 },
+        projectTitle: { fontSize: 10.5, fontFamily: "Times-Bold", color: "#111" },
+        bulletDot: { fontSize: 10, color: "#444", marginRight: 5, width: 10, flexShrink: 0 },
+        body: { fontSize: 10, fontFamily: "Times-Roman", color: "#222", lineHeight: 1.55 },
+      }),
+    };
+  }
+
+  // compact — Helvetica, 11pt body, generous spacing
+  // Designed so a shorter CV looks intentional rather than thin
   return {
     ...shared,
     ...StyleSheet.create({
-      page: { fontFamily: "Helvetica", fontSize: 10, color: "#1a1a1a", lineHeight: 1.45, paddingTop: 42, paddingBottom: 42, paddingHorizontal: 56 },
-      header: { marginBottom: 12, textAlign: "center" as const },
-      headerDivider: { borderBottomWidth: 0.5, borderBottomColor: "#aaa", borderBottomStyle: "solid", marginBottom: 14 },
-      name: { fontSize: 20, fontFamily: "Helvetica-Bold", color: "#000", textTransform: "uppercase" as const, letterSpacing: 2.5, textAlign: "center" as const, marginBottom: 4 },
-      contactLine: { fontSize: 8.5, color: "#555", textAlign: "center" as const, letterSpacing: 0.5 },
-      section: { marginBottom: 13 },
-      sectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: "#111", letterSpacing: 1.5 },
-      entry: { marginBottom: 9 },
-      entryTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
-      projectTitle: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#111" },
-      bulletDot: { fontSize: 9.5, color: "#555", marginRight: 5, width: 10, flexShrink: 0 },
+      page: {
+        fontFamily: "Helvetica",
+        fontSize: 10.5,
+        color: "#1a1a1a",
+        lineHeight: 1.5,
+        paddingTop: 52,
+        paddingBottom: 52,
+        paddingHorizontal: 54,
+      },
+      header: { marginBottom: 18 },
+      headerRule: { borderBottomWidth: 0.5, borderBottomColor: "#ccc", borderBottomStyle: "solid", marginBottom: 18 },
+      name: { fontSize: 26, fontFamily: "Helvetica-Bold", color: accent, marginBottom: 4 },
+      targetRole: { fontSize: 11, color: "#555", marginBottom: 5 },
+      contactLine: { fontSize: 9, color: "#777" },
+      section: { marginBottom: 18 },
+      sectionTitle: { fontSize: 9.5, fontFamily: "Helvetica-Bold", color: accent, letterSpacing: 1.2 },
+      entry: { marginBottom: 13 },
+      entryTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#111" },
+      entryOrg: { fontSize: 10, color: "#555", marginBottom: 4 },
+      entryDate: { fontSize: 9, color: "#888", marginLeft: 8, flexShrink: 0 },
+      projectTitle: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#111" },
+      bulletDot: { fontSize: 10.5, color: accent, marginRight: 6, width: 9, flexShrink: 0 },
+      body: { fontSize: 10.5, color: "#333", lineHeight: 1.6 },
     }),
   };
 }

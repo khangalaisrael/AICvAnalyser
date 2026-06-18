@@ -32,14 +32,16 @@ export function useDownloadPdf() {
       rewritten,
       accentColor,
       templateId,
+      targetRole,
       filename,
     }: {
       rewritten: RewrittenCVLedger;
       accentColor?: string;
       templateId?: string;
+      targetRole?: string;
       filename?: string;
     }) =>
-      downloadPdf(rewritten, accentColor, templateId).then((blob) => {
+      downloadPdf(rewritten, accentColor, templateId, targetRole).then((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

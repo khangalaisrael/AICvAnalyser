@@ -9,11 +9,17 @@ export async function POST(req: Request) {
     rewritten: RewrittenCVLedger;
     accentColor?: string;
     templateId?: string;
+    targetRole?: string;
   };
-  const { rewritten, accentColor = "#f25c54", templateId = "ats" } = body;
+  const { rewritten, accentColor = "#1d3557", templateId = "modern", targetRole } = body;
 
   const buffer = await renderToBuffer(
-    <CVDocument rewritten={rewritten} accentColor={accentColor} templateId={templateId as "ats" | "modern" | "classic"} />
+    <CVDocument
+      rewritten={rewritten}
+      accentColor={accentColor}
+      templateId={templateId as "modern" | "classic" | "compact"}
+      targetRole={targetRole}
+    />
   );
 
   const name =

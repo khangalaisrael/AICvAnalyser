@@ -9,9 +9,7 @@ import {
 } from "@/hooks/useRewrite";
 import { PdfDropzone } from "@/components/upload/PdfDropzone";
 import { TEMPLATES } from "@/components/rewrite/CVTemplate";
-import type {
-  TemplateId,
-} from "@/components/rewrite/CVTemplate";
+import type { TemplateId } from "@/components/rewrite/CVTemplate";
 import type {
   CVLedger,
   RewrittenCVLedger,
@@ -26,11 +24,12 @@ const MUTED = "#7c818b";
 const BORDER = "#ecebe3";
 const BG_CARD = "#ffffff";
 
+// Professional dark accents per brief: "one navy accent... navy, not red"
 const ACCENT_SWATCHES = [
-  { color: "#f25c54", label: "Coral" },
-  { color: "#2563eb", label: "Ocean" },
-  { color: "#059669", label: "Forest" },
-  { color: "#7c3aed", label: "Violet" },
+  { color: "#1d3557", label: "Navy" },
+  { color: "#1a4d3e", label: "Forest" },
+  { color: "#374151", label: "Charcoal" },
+  { color: "#4a2c6e", label: "Aubergine" },
 ];
 
 /* ── shared sub-components ─────────────────────────────────────────────── */
@@ -381,8 +380,8 @@ function TemplatePicker({
                 </span>
               </div>
 
-              {/* "Highly recommended" badge — only on ATS template */}
-              {t.id === "ats" && (
+              {/* "Highly recommended" badge — on Modern (most versatile, per brief) */}
+              {t.id === "modern" && (
                 <div style={{
                   fontSize: 10, fontWeight: 700, color: "#437a1a",
                   background: "rgba(95,139,46,0.10)",
@@ -665,8 +664,8 @@ export default function RewritePage() {
   const [cvText, setCvText] = useState("");
   const [atsBefore, setAtsBefore] = useState(0);
   const [result, setResult] = useState<GenerateRewriteResponse | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("ats");
-  const [accentColor, setAccentColor] = useState(CORAL);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("modern");
+  const [accentColor, setAccentColor] = useState("#1d3557");
 
   const structure = useStructureCv();
   const generate = useGenerateRewrite();
@@ -705,6 +704,7 @@ export default function RewritePage() {
       rewritten: result.rewritten as RewrittenCVLedger,
       accentColor,
       templateId: selectedTemplate,
+      targetRole: role,
       filename: `${name.replace(/\s+/g, "-").toLowerCase()}-${role.replace(/\s+/g, "-").toLowerCase()}.pdf`,
     });
   }

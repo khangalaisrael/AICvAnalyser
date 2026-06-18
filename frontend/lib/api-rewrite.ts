@@ -52,13 +52,14 @@ export async function generateRewrite(
 
 export async function downloadPdf(
   rewritten: RewrittenCVLedger,
-  accentColor: string = "#f25c54",
-  templateId: string = "ats",
+  accentColor: string = "#1d3557",
+  templateId: string = "modern",
+  targetRole?: string,
 ): Promise<Blob> {
   const res = await fetch("/api/pdf", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ rewritten, accentColor, templateId }),
+    body: JSON.stringify({ rewritten, accentColor, templateId, targetRole }),
   });
   if (!res.ok) throw new Error("PDF generation failed");
   return res.blob();
