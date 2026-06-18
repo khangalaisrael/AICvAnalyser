@@ -49,6 +49,8 @@ REWRITING PRINCIPLES:
 4. If a bullet would be significantly stronger with a number/outcome NOT in the source, set needs_metric=true and write a concise metric_prompt question instead of inventing a number
 5. Preserve employer names, job titles, dates, qualifications, and existing metrics EXACTLY
 6. Improve the professional summary to lead with the candidate's strongest hook for this specific role{role_context}
+7. CRITICAL: Return the "contact" object UNCHANGED — name, email, phone, location, links must be identical to the source
+8. CRITICAL: Return the "skills" array UNCHANGED — do not add, remove, or rename any skill
 
 SOURCE FACTS LEDGER (the complete, exhaustive set of true claims you may draw from):
 {json.dumps(ledger, indent=2)}
@@ -88,6 +90,11 @@ Return ONLY valid JSON. No markdown, no explanation."""
         rewritten = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValueError(f"Rewrite returned invalid JSON: {exc}") from exc
+
+    # Always preserve contact and skills exactly from the source ledger —
+    # the AI must never add, remove, or rephrase these.
+    rewritten["contact"] = ledger.get("contact", {})
+    rewritten["skills"] = ledger.get("skills", [])
 
     return rewritten
 
