@@ -29,6 +29,7 @@ const VERDICT_STYLE = {
 
 const SENIORITY_STYLE: Record<SeniorityLevel, { bg: string; color: string }> = {
   "Entry-level": { bg: "rgba(124,129,139,0.10)", color: "#7c818b" },
+  "Junior":      { bg: "rgba(124,129,139,0.10)", color: "#7c818b" },
   "Mid-level":   { bg: "rgba(197,129,28,0.10)",  color: "#c5811c" },
   "Senior":      { bg: "rgba(95,139,46,0.12)",   color: "#5f8b2e" },
 };
