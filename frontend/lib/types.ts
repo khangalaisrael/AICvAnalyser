@@ -114,6 +114,9 @@ export interface ScoringResult {
   knockout: boolean;
   final_score: number;
   component_scores?: Record<string, number>;
+  score_breakdown?: Record<string, string>;
+  confidence?: "high" | "medium" | "low";
+  confidence_reasons?: string[];
   experience_flag?: boolean;
   experience_flag_message?: string;
   knockout_reason?: string;

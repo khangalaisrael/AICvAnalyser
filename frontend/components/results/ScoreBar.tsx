@@ -1,6 +1,7 @@
 interface Props {
   label: string;
   value: number; // 0–1 float from component_scores
+  detail?: string; // plain-English "why this score" explanation
 }
 
 function band(v: number) {
@@ -33,7 +34,7 @@ export function ScoreBar({ label, value }: Props) {
   );
 }
 
-export function ScoreBarCard({ label, value }: Props) {
+export function ScoreBarCard({ label, value, detail }: Props) {
   const v = Math.round(value * 100);
   const b = band(v);
 
@@ -65,6 +66,11 @@ export function ScoreBarCard({ label, value }: Props) {
           transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1)",
         }} />
       </div>
+      {detail && (
+        <p style={{ fontSize: 12.5, color: "#7c818b", lineHeight: 1.5, margin: "10px 0 0" }}>
+          {detail}
+        </p>
+      )}
     </div>
   );
 }

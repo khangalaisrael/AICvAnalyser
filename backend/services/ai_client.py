@@ -22,6 +22,8 @@ _SAFE_FALLBACK: dict = {
     "years_experience": 0,
     "has_projects": False,
     "has_metrics": False,
+    "quantified_achievement_count": 0,
+    "project_count": 0,
     "certifications": [],
     "match_score": 0,
     "keyword_alignment": 0,
@@ -98,6 +100,22 @@ TRENDING NARRATIVE:
 - Each bullet is one specific, punchy insight about this role's market right now — name the tool, the shift, or the expectation
 - If a bullet could apply to any role, cut it
 - Cover the most important signals: what's moved from optional to required, what interviewers probe now, what the top 10% have that others don't
+
+SCORING CALIBRATION (match_score) — anchor to these bands, do not freestyle:
+- 90-100: covers ALL must-haves + most strongly-expected, with proven delivery evidence
+- 75-89: covers all must-haves, some strongly-expected; solid evidence
+- 60-74: covers most must-haves; gaps are learnable, core foundation is present
+- 40-59: covers roughly half the must-haves; meaningful retraining needed
+- 20-39: only peripheral overlap with the role
+- 0-19: no meaningful match
+Base the score ONLY on evidence present in the CV text. Never award points for
+skills you cannot point to. When uncertain between two bands, pick the lower.
+
+EVIDENCE COUNTS (extract, do not estimate):
+- quantified_achievement_count: count DISTINCT bullets containing a concrete number
+  (%, revenue, users, time saved, dataset size, rank, GPA). Count them literally.
+- project_count: count DISTINCT real projects (personal, academic capstone, open
+  source, internship deliverables). A skills list is not a project.
 
 COACHING TONE:
 - job_seeker mode: focus on CV improvements, ATS keywords, interview readiness, quick wins to land interviews
@@ -185,6 +203,8 @@ Return ONLY a raw JSON object. No markdown, no backticks, no explanation — jus
   "years_experience": <integer>,
   "has_projects": <true|false>,
   "has_metrics": <true|false>,
+  "quantified_achievement_count": <integer — literal count of distinct quantified bullets>,
+  "project_count": <integer — literal count of distinct real projects>,
   "certifications": ["certifications found in CV"],
   "match_score": <integer 0-100>,
   "keyword_alignment": <integer 0-100>,
@@ -258,6 +278,8 @@ Return ONLY a raw JSON object. No markdown, no backticks, no explanation — jus
   "years_experience": <integer>,
   "has_projects": <true|false>,
   "has_metrics": <true|false>,
+  "quantified_achievement_count": <integer — literal count of distinct quantified bullets>,
+  "project_count": <integer — literal count of distinct real projects>,
   "certifications": ["certifications found in CV"],
   "match_score": <integer 0-100>,
   "keyword_alignment": <integer 0-100>,
@@ -334,6 +356,8 @@ Return ONLY a raw JSON object. No markdown, no backticks, no explanation — jus
   "years_experience": <integer>,
   "has_projects": <true|false>,
   "has_metrics": <true|false>,
+  "quantified_achievement_count": <integer — literal count of distinct quantified bullets>,
+  "project_count": <integer — literal count of distinct real projects>,
   "certifications": ["certifications found in CV"],
   "match_score": <integer 0-100>,
   "keyword_alignment": <integer 0-100>,
@@ -365,7 +389,9 @@ def analyse_cv(cv_text: str, job_role: str, role_profile: RoleProfile, user_mode
         response = _get_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=[{"role": "user", "content": _build_prompt(cv_text, job_role, role_profile, user_mode)}],
-            temperature=0.2,
+            temperature=0,
+            seed=1234,
+            response_format={"type": "json_object"},
             max_tokens=3200,
         )
         raw = response.choices[0].message.content or ""
@@ -420,7 +446,9 @@ Return this exact JSON structure:
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": user_msg},
             ],
-            temperature=0.3,
+            temperature=0,
+            seed=1234,
+            response_format={"type": "json_object"},
             max_tokens=1000,
         )
         raw = response.choices[0].message.content or ""
@@ -439,7 +467,9 @@ def analyse_cv_with_research(cv_text: str, researched_profile: dict, user_mode: 
         response = _get_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=[{"role": "user", "content": _build_custom_jd_prompt(cv_text, researched_profile, user_mode)}],
-            temperature=0.2,
+            temperature=0,
+            seed=1234,
+            response_format={"type": "json_object"},
             max_tokens=3200,
         )
         raw = response.choices[0].message.content or ""
@@ -469,7 +499,9 @@ def analyse_cv_with_raw_jd(cv_text: str, raw_jd: str, user_mode: str = "job_seek
         response = _get_client().chat.completions.create(
             model=OPENAI_MODEL,
             messages=[{"role": "user", "content": _build_raw_jd_prompt(cv_text, raw_jd, user_mode)}],
-            temperature=0.2,
+            temperature=0,
+            seed=1234,
+            response_format={"type": "json_object"},
             max_tokens=3200,
         )
         raw = response.choices[0].message.content or ""

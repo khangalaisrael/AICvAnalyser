@@ -58,6 +58,25 @@ VERDICT_THRESHOLDS_BY_SENIORITY: dict[str, dict[str, int]] = {
     "Senior":      {"hire": 78, "maybe": 55},
 }
 
+# ── Deterministic skill-coverage scoring ─────────────────────────────────────
+# The technical_skill_match component is now COMPUTED from which skills actually
+# matched per tier (skill_tier_match), not taken from the LLM's invented number.
+SKILL_TIER_WEIGHTS: dict[str, float] = {
+    "must_have":             0.50,
+    "strongly_expected":     0.25,
+    "nice_to_have":          0.15,
+    "competitive_advantage": 0.10,
+}
+
+# The LLM's holistic match_score is kept only as a small blend on top of the
+# deterministic coverage score, and it is clamped to ±LLM_SCORE_CLAMP of it.
+LLM_SCORE_BLEND: float = 0.25       # 25% LLM holistic, 75% deterministic coverage
+LLM_SCORE_CLAMP: float = 0.15       # LLM score may not deviate >15pts from coverage
+
+# Graded (non-binary) evidence scoring: how many items = full credit
+ACHIEVEMENTS_FULL_CREDIT: int = 4   # 4+ quantified achievements = 1.0
+PROJECTS_FULL_CREDIT: int = 2       # 2+ real projects = 1.0
+
 # Certification signal: carries most weight for Entry-level (no work history); negligible for Senior
 CERT_MULTIPLIER_BY_SENIORITY: dict[str, float] = {
     "Entry-level": 1.0,

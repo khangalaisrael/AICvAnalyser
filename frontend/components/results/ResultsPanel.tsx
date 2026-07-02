@@ -143,6 +143,27 @@ export function ResultsPanel() {
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: vs.dot }} />
               VERDICT · {verdict}
             </div>
+            {scoring.confidence && (
+              <div
+                title={(scoring.confidence_reasons ?? []).join("\n")}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: scoring.confidence === "high" ? "rgba(95,139,46,0.10)"
+                    : scoring.confidence === "medium" ? "rgba(197,129,28,0.10)"
+                    : "rgba(232,74,69,0.08)",
+                  color: scoring.confidence === "high" ? "#5f8b2e"
+                    : scoring.confidence === "medium" ? "#c5811c"
+                    : "#e84a45",
+                  padding: "7px 12px", borderRadius: 999, fontWeight: 600, fontSize: 12,
+                  letterSpacing: "0.03em", cursor: "help",
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                {scoring.confidence.charAt(0).toUpperCase() + scoring.confidence.slice(1)} confidence
+              </div>
+            )}
             {seniority && senStyle && (
               <div style={{
                 display: "inline-flex", alignItems: "center",
@@ -258,7 +279,12 @@ export function ResultsPanel() {
           <div style={{ display: "flex", flexDirection: "column" }}>
             {Object.entries(LABELS).map(([key, label]) =>
               componentScores[key] !== undefined ? (
-                <ScoreBarCard key={key} label={label} value={componentScores[key]} />
+                <ScoreBarCard
+                  key={key}
+                  label={label}
+                  value={componentScores[key]}
+                  detail={scoring.score_breakdown?.[key]}
+                />
               ) : null
             )}
           </div>
