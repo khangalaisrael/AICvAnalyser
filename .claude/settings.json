@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --prod --force --yes)",
+      "Bash(node e2e.js)",
+      "Bash(curl -s -m 40 -X DELETE https://cxgsyztmycehjlneorwd.supabase.co/auth/v1/admin/users/edb3419e-0b85-49bd-a6b1-65c2e547e3a0 -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4Z3N5enRteWNlaGpsbmVvcndkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTYyNDcxOSwiZXhwIjoyMDk3MjAwNzE5fQ.lXULlM_50UnV3UY7ZSkCwy4VGnfIQeJpKumpP9Cm6ic' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4Z3N5enRteWNlaGpsbmVvcndkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTYyNDcxOSwiZXhwIjoyMDk3MjAwNzE5fQ.lXULlM_50UnV3UY7ZSkCwy4VGnfIQeJpKumpP9Cm6ic' -w 'delete test user: %{http_code}\\\\n' -o /dev/null)"
+    ]
+  }
+}
