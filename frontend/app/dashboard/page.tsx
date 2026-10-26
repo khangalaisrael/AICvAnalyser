@@ -63,6 +63,12 @@ export default function DashboardPage() {
         ? "Couldn't identify a role from that description — try being a bit more specific."
         : "Analysis failed — please try again.";
     }
+    // Surface the backend's reason (e.g. unreadable PDF) instead of a generic message
+    try {
+      const detail = JSON.parse(msg)?.detail;
+      if (typeof detail === "string" && detail) return `Analysis failed — ${detail}`;
+    } catch {}
+    if (msg === "Failed to fetch") return "Analysis failed — couldn't reach the server. Please try again in a minute.";
     return "Analysis failed — please try again.";
   })();
 
