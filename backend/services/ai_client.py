@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -413,6 +414,32 @@ def analyse_cv(cv_text: str, job_role: str, role_profile: RoleProfile, user_mode
 
     result.pop("error", None)
     return result
+
+
+def transcribe_cv_images(images: list[bytes]) -> str:
+    """OCR fallback: read the text from page images of a flattened or scanned CV."""
+    content: list[dict] = [{
+        "type": "text",
+        "text": (
+            "These images are the pages of a CV. Transcribe all of the text exactly as written, "
+            "page by page, keeping headings and bullet points on their own lines. "
+            "Return only the transcribed text, with no commentary."
+        ),
+    }]
+    for img in images:
+        b64 = base64.b64encode(img).decode()
+        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}", "detail": "high"}})
+
+    try:
+        response = _get_client().chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[{"role": "user", "content": content}],
+            temperature=0,
+            max_tokens=4000,
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        return ""
 
 
 def research_role(description: str) -> dict:

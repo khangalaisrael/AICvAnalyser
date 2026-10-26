@@ -1,3 +1,4 @@
+import io
 import re
 import pdfplumber
 
@@ -14,6 +15,20 @@ def extract_text(pdf_file: object) -> str:
 
 def is_valid_cv_text(text: str, min_chars: int = 100) -> bool:
     return len(text) >= min_chars
+
+
+def render_pages_png(pdf_file: object, max_pages: int = 4, resolution: int = 150) -> list[bytes]:
+    """Render the first pages as PNGs — used to OCR flattened/scanned PDFs that have no text layer."""
+    try:
+        images = []
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages[:max_pages]:
+                buf = io.BytesIO()
+                page.to_image(resolution=resolution).original.save(buf, format="PNG")
+                images.append(buf.getvalue())
+        return images
+    except Exception:
+        return []
 
 
 def check_cv_quality(cv_text: str) -> dict:

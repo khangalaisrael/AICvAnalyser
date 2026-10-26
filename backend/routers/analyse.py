@@ -9,10 +9,11 @@ from services.ai_client import (
     analyse_cv_with_raw_jd,
     analyse_cv_with_research,
     research_role,
+    transcribe_cv_images,
     _parse_experience_years,
 )
 from services.database import save_analysis_to_supabase
-from services.pdf_processor import extract_text, is_valid_cv_text, check_cv_quality
+from services.pdf_processor import extract_text, is_valid_cv_text, check_cv_quality, render_pages_png
 from services.role_profiles import RoleProfile, get_profile
 from services.scoring_engine import run_scoring
 
@@ -49,9 +50,15 @@ async def analyse(
     cv_text = extract_text(io.BytesIO(pdf_bytes))
 
     if not is_valid_cv_text(cv_text):
+        # Flattened (e.g. Canva) or scanned PDF — no text layer, so read the page images instead
+        page_images = render_pages_png(io.BytesIO(pdf_bytes))
+        if page_images:
+            cv_text = transcribe_cv_images(page_images)
+
+    if not is_valid_cv_text(cv_text):
         raise HTTPException(
             status_code=400,
-            detail="Could not extract meaningful text from the PDF. Is it a scanned image?",
+            detail="Could not read any text from the PDF. Please upload a clearer copy of your CV.",
         )
 
     researched_role_data = None
