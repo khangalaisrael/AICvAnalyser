@@ -139,3 +139,14 @@ html, body { overflow-x: hidden; }
 }
 .ts-sectionnav button:hover { border-color: #f25c54; color: #f25c54; }
 @media (max-width: 860px) { .ts-anchor { top: -60px; } }
+
+/* ── Print / PDF export ───────────────────────────── */
+@media print {
+  .ts-sidebar, .ts-topbar, .ts-backdrop, .ts-upload, .ts-sectionnav, .no-print { display: none !important; }
+  html, body { overflow: visible !important; background: #fff !important; }
+  .ts-shell, .ts-dash, .ts-main, .ts-results { display: block !important; height: auto !important; overflow: visible !important; }
+  .ts-dash[data-view] .ts-results { display: block !important; }
+  .ts-results-pad { max-width: none !important; padding: 0 !important; }
+  .ts-anchor { display: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

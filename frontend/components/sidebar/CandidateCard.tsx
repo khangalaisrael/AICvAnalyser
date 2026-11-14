@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store/appStore";
-import { deleteCandidate } from "@/lib/api";
+import { deleteCandidate, fetchCandidate } from "@/lib/api";
 import type { CandidateSummary } from "@/lib/types";
 
 const VERDICT_DOT: Record<string, string> = {
@@ -69,7 +69,11 @@ export function CandidateCard({ candidate }: { candidate: CandidateSummary }) {
           transition: "background 0.12s",
           userSelect: "none",
         }}
-        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
+        onMouseEnter={(e) => {
+          // Warm the cache so opening this candidate feels instant.
+          queryClient.prefetchQuery({ queryKey: ["candidates", candidate.id], queryFn: () => fetchCandidate(candidate.id) });
+          if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+        }}
         onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>

@@ -7,11 +7,15 @@ import { updatePipelineStatus } from "@/lib/api";
 import { ScoreRing } from "./ScoreRing";
 import { ScoreBarCard } from "./ScoreBar";
 import { SkillPill } from "./SkillPill";
-import { CoachingPanel } from "./CoachingPanel";
-import { CVHealthPanel } from "./CVHealthPanel";
+import dynamic from "next/dynamic";
+import { ExportBar } from "./ExportBar";
+
+// Below the fold, so they load after the top of the report is already on screen.
+const CoachingPanel = dynamic(() => import("./CoachingPanel").then((m) => m.CoachingPanel));
+const CVHealthPanel = dynamic(() => import("./CVHealthPanel").then((m) => m.CVHealthPanel));
 import { ResultsNav } from "./ResultsNav";
 import { SkillCoverage } from "./SkillCoverage";
-import { CompareCard } from "./CompareCard";
+const CompareCard = dynamic(() => import("./CompareCard").then((m) => m.CompareCard));
 import type { PipelineStatus, SeniorityLevel } from "@/lib/types";
 
 const LABELS: Record<string, string> = {
@@ -97,6 +101,20 @@ export function ResultsPanel() {
   const trending        = ai.trending_for_role ?? [];
   const trendingNarrative = ai.trending_narrative ?? "";
   const seniority       = ai.seniority_level as SeniorityLevel | undefined;
+
+  // Tag each gap by how much the role profile says it matters.
+  const norm = (x: string) => x.trim().toLowerCase();
+  const reqSet  = new Set((researched_role?.required_skills ?? []).map(norm));
+  const niceSet = new Set((researched_role?.nice_to_have_skills ?? []).map(norm));
+  const edgeSet = new Set((researched_role?.competitive_advantage_skills ?? []).map(norm));
+  const hasTiers = reqSet.size + niceSet.size + edgeSet.size > 0;
+  const gapGroups = [
+    { label: "Must-have",      items: missing.filter((s) => reqSet.has(norm(s))) },
+    { label: "Nice to have",   items: missing.filter((s) => !reqSet.has(norm(s)) && niceSet.has(norm(s))) },
+    { label: "Differentiator", items: missing.filter((s) => !reqSet.has(norm(s)) && !niceSet.has(norm(s)) && edgeSet.has(norm(s))) },
+  ];
+  const groupedCount = gapGroups.reduce((n, g) => n + g.items.length, 0);
+  const otherGaps = hasTiers ? missing.filter((s) => !gapGroups.some((g) => g.items.includes(s))) : missing;
   const senStyle        = seniority ? SENIORITY_STYLE[seniority] : null;
 
   return (
@@ -119,6 +137,8 @@ export function ResultsPanel() {
         {missing.length > 0 && <> · {missing.length} skill {missing.length === 1 ? "gap" : "gaps"} to close</>}
         {(ai.coaching?.quick_wins ?? []).length > 0 && <> · {ai.coaching?.quick_wins.length} quick {ai.coaching?.quick_wins.length === 1 ? "win" : "wins"}</>}
       </p>
+
+      <ExportBar candidate={candidate} />
 
       <ResultsNav
         sections={[
@@ -357,9 +377,24 @@ export function ResultsPanel() {
               <span style={{ fontSize: 11, fontWeight: 700, color: "#e84a45", background: "rgba(232,74,69,0.10)", borderRadius: 999, padding: "2px 8px" }}>{missing.length}</span>
             </div>
             <div>
-              {missing.length > 0
-                ? missing.map((s) => <SkillPill key={s} text={s} matched={false} />)
-                : <span style={{ fontSize: 13, color: "#a7a99f" }}>None identified</span>}
+              {missing.length === 0 && <span style={{ fontSize: 13, color: "#a7a99f" }}>None identified</span>}
+              {hasTiers && groupedCount > 0 && gapGroups.filter((g) => g.items.length > 0).map((g) => (
+                <div key={g.label} style={{ marginBottom: 10 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#a7a99f", margin: "0 0 2px" }}>{g.label}</p>
+                  {g.items.map((s) => <SkillPill key={s} text={s} matched={false} />)}
+                </div>
+              ))}
+              {otherGaps.length > 0 && (
+                <div>
+                  {hasTiers && groupedCount > 0 && <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#a7a99f", margin: "0 0 2px" }}>Other</p>}
+                  {otherGaps.map((s) => <SkillPill key={s} text={s} matched={false} />)}
+                </div>
+              )}
+              {hasTiers && groupedCount > 0 && (
+                <p style={{ fontSize: 11.5, color: "#a7a99f", margin: "10px 0 0", lineHeight: 1.5 }}>
+                  Ranked using the AI-researched profile for this role.
+                </p>
+              )}
             </div>
           </div>
 

@@ -3,6 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
+import { ScoreRing } from "@/components/results/ScoreRing";
+import { ScoreBar } from "@/components/results/ScoreBar";
+import { SkillPill } from "@/components/results/SkillPill";
+import { SkillCoverage } from "@/components/results/SkillCoverage";
+import { CVHealthPanel } from "@/components/results/CVHealthPanel";
+import { SAMPLE } from "@/lib/sample";
 
 /* ── design tokens ──────────────────────────────────────────────────────── */
 const CORAL = "#f25c54";
@@ -129,252 +135,129 @@ function ScoreResultCard() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.65, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14,
-        padding: "18px 16px", width: 190,
+        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
+        padding: "18px 18px 8px", width: 250,
         boxShadow: "0 6px 32px rgba(34,39,47,0.10)",
       }}
     >
-      <div style={{ fontSize: 10, color: MUTED, marginBottom: 8, letterSpacing: 0.1 }}>
-        Senior Product Manager
-      </div>
-
-      {/* score */}
-      <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginBottom: 6 }}>
-        <span style={{ fontSize: 34, fontWeight: 800, color: INK, fontFamily: MONO, letterSpacing: "-0.04em", lineHeight: 1 }}>87</span>
-        <span style={{ fontSize: 13, color: MUTED, fontFamily: MONO }}>/100</span>
-      </div>
-
-      {/* bar */}
-      <div style={{ height: 4, background: BORDER, borderRadius: 99, marginBottom: 12, overflow: "hidden" }}>
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: "87%" }}
-          transition={{ duration: 0.9, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
-          style={{ height: 4, background: "linear-gradient(90deg,#437a1a,#7db83a)", borderRadius: 99 }}
-        />
-      </div>
-
-      {/* match items */}
-      {[
-        { text: "Product leadership exp.", pass: true },
-        { text: "Cross-functional teams", pass: true },
-        { text: "OKR framework missing", pass: false },
-        { text: "SQL not in skills", pass: false },
-      ].map((item) => (
-        <div key={item.text} style={{ display: "flex", gap: 6, alignItems: "flex-start", marginBottom: 5 }}>
-          <div style={{ marginTop: 1, flexShrink: 0 }}>
-            <Check pass={item.pass} />
-          </div>
-          <span style={{ fontSize: 10.5, color: item.pass ? INK : MUTED, lineHeight: 1.4 }}>{item.text}</span>
+      <SampleTag />
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+        <ScoreRing score={SAMPLE.score} size={72} strokeWidth={13} numSize={22} />
+        <div>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: "#a7a99f", margin: "0 0 2px", letterSpacing: "0.05em", textTransform: "uppercase" }}>{SAMPLE.role}</p>
+          <p style={{ fontFamily: "var(--font-serif), 'Source Serif 4', serif", fontSize: 15, fontWeight: 600, margin: 0 }}>Strong match</p>
         </div>
-      ))}
+      </div>
+      {SAMPLE.components.slice(0, 2).map((c) => <ScoreBar key={c.label} label={c.label} value={c.value} />)}
     </motion.div>
   );
 }
 
-/* ── feature section mock UIs ───────────────────────────────────────────── */
+/* ── feature section mock UIs: the real report components fed with sample data ── */
+
+function SampleTag() {
+  return (
+    <span style={{
+      display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+      color: MUTED, background: "#f3f2ec", borderRadius: 99, padding: "3px 9px", marginBottom: 14,
+    }}>
+      Sample report
+    </span>
+  );
+}
 
 function MockCard({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
-      padding: "24px", boxShadow: "0 4px 24px rgba(34,39,47,0.07)",
-      maxWidth: 380, width: "100%",
+      background: CARD, border: `1px solid ${BORDER}`, borderRadius: 18,
+      padding: "22px 24px", boxShadow: "0 4px 24px rgba(34,39,47,0.07)",
+      maxWidth: 440, width: "100%",
     }}>
+      <SampleTag />
       {children}
     </div>
   );
 }
 
+const TIER_LABEL: Record<string, string> = { must: "Must-have", nice: "Nice to have", edge: "Differentiator" };
+
 function ScoreFeatureMock() {
-  const items = [
-    { text: "Led cross-functional teams (3 mentions)", pass: true },
-    { text: "5+ yrs product experience", pass: true },
-    { text: "Agile / Scrum methodology", pass: true },
-    { text: "OKRs framework — not mentioned", pass: false },
-    { text: "SQL proficiency — not in skills", pass: false },
-  ];
   return (
     <MockCard>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 20, flexWrap: "wrap" }}>
+        <ScoreRing score={SAMPLE.score} size={104} strokeWidth={12} numSize={32} />
         <div>
-          <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Head of Product · Fintech</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-            <span style={{ fontSize: 40, fontWeight: 800, color: INK, fontFamily: MONO, letterSpacing: "-0.04em", lineHeight: 1 }}>82</span>
-            <span style={{ fontSize: 14, color: MUTED, fontFamily: MONO }}>/100</span>
-          </div>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#a7a99f", margin: "0 0 3px", letterSpacing: "0.05em", textTransform: "uppercase" }}>{SAMPLE.role}</p>
+          <p style={{ fontFamily: "var(--font-serif), 'Source Serif 4', serif", fontSize: 18, fontWeight: 600, margin: 0 }}>Strong match</p>
         </div>
-        <div style={{
-          fontSize: 10.5, fontWeight: 700, color: "#437a1a",
-          background: "rgba(67,122,26,0.10)", borderRadius: 99, padding: "4px 10px",
-        }}>Strong match</div>
       </div>
-      <div style={{ height: 5, background: BORDER, borderRadius: 99, marginBottom: 14, overflow: "hidden" }}>
-        <div style={{ height: 5, width: "82%", background: "linear-gradient(90deg,#437a1a,#7db83a)", borderRadius: 99 }} />
-      </div>
-      {items.map((item) => (
-        <div key={item.text} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "flex-start" }}>
-          <div style={{ marginTop: 1, flexShrink: 0 }}><Check pass={item.pass} /></div>
-          <span style={{ fontSize: 12.5, color: item.pass ? INK : MUTED, lineHeight: 1.5 }}>{item.text}</span>
-        </div>
-      ))}
+      {SAMPLE.components.map((c) => <ScoreBar key={c.label} label={c.label} value={c.value} />)}
     </MockCard>
   );
 }
 
 function AtsFeatureMock() {
-  const items = [
-    { text: "Two-column layout detected", pass: false },
-    { text: "Contact info in header — may be skipped", pass: false },
-    { text: "Table used in skills section", pass: false },
-    { text: "No images or text in images", pass: true },
-    { text: "Standard section headings", pass: true },
-    { text: "Machine-readable fonts", pass: true },
-  ];
   return (
-    <MockCard>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>ATS scan</div>
-        <div style={{
-          fontSize: 10.5, fontWeight: 700, color: "#c7302b",
-          background: "rgba(199,48,43,0.08)", borderRadius: 99, padding: "3px 10px",
-        }}>3 issues found</div>
-      </div>
-      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
-      {items.map((item) => (
-        <div key={item.text} style={{ display: "flex", gap: 8, marginBottom: 9, alignItems: "flex-start" }}>
-          <div style={{ marginTop: 1, flexShrink: 0 }}><Check pass={item.pass} /></div>
-          <span style={{ fontSize: 12.5, color: item.pass ? MUTED : INK, lineHeight: 1.5 }}>{item.text}</span>
-        </div>
-      ))}
-    </MockCard>
+    <div style={{ maxWidth: 460, width: "100%" }}>
+      <SampleTag />
+      <CVHealthPanel checklist={SAMPLE.checklist} />
+    </div>
   );
 }
 
 function GapsFeatureMock() {
-  const skills = [
-    { name: "SQL", count: 9, have: false },
-    { name: "OKR frameworks", count: 8, have: false },
-    { name: "Agile / Scrum", count: 8, have: true },
-    { name: "Stakeholder mgmt", count: 7, have: true },
-    { name: "A/B testing", count: 5, have: false },
-  ];
   return (
     <MockCard>
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 3 }}>Live market · Senior PM · London</div>
-        <div style={{ fontSize: 11, color: MUTED }}>Based on 47 current postings</div>
-      </div>
-      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
-      {skills.map((s) => (
-        <div key={s.name} style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontSize: 12, color: s.have ? MUTED : INK, fontWeight: s.have ? 400 : 600 }}>{s.name}</span>
-            <span style={{ fontSize: 11, color: MUTED, fontFamily: MONO }}>{s.count}/10 postings</span>
-          </div>
-          <div style={{ height: 4, background: BORDER, borderRadius: 99, overflow: "hidden" }}>
-            <div style={{
-              height: 4, width: `${s.count * 10}%`, borderRadius: 99,
-              background: s.have ? "#7db83a" : CORAL, opacity: s.have ? 0.5 : 0.8,
-            }} />
-          </div>
-          {!s.have && (
-            <div style={{ fontSize: 10, color: CORAL, marginTop: 2 }}>Not in your CV</div>
-          )}
+      <SkillCoverage matched={SAMPLE.matched.length} inferred={SAMPLE.inferred.length} missing={Object.values(SAMPLE.gaps).flat().length} />
+      {(Object.keys(SAMPLE.gaps) as (keyof typeof SAMPLE.gaps)[]).map((tier) => (
+        <div key={tier} style={{ marginBottom: 10 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#a7a99f", margin: "0 0 4px" }}>
+            {TIER_LABEL[tier]}
+          </p>
+          {SAMPLE.gaps[tier].map((g) => <SkillPill key={g} text={g} matched={false} />)}
         </div>
       ))}
-    </MockCard>
-  );
-}
-
-function TrendingFeatureMock() {
-  const bullets = [
-    "Demand for AI-native PMs up 34% vs. last quarter in this market",
-    "SQL / data proficiency now cited in 8 of 10 postings for this role",
-    "Remote-first roles declining; hybrid positions growing across EMEA",
-  ];
-  const trending = ["AI/ML product thinking", "Data & SQL", "LLM integration", "GenAI roadmapping", "Prompt engineering"];
-  return (
-    <MockCard>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8,
-          background: "rgba(197,129,28,0.12)",
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c5811c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
-          </svg>
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>What the market wants right now</div>
-      </div>
-      <div style={{ fontSize: 11, color: MUTED, marginBottom: 14 }}>Senior PM · London · 47 live postings</div>
-      <div style={{ height: 1, background: BORDER, marginBottom: 14 }} />
-      {bullets.map((line, i) => (
-        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 9, alignItems: "flex-start" }}>
-          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#c5811c", marginTop: 6, flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.6 }}>{line}</span>
-        </div>
-      ))}
-      <div style={{ marginTop: 14 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: MUTED, marginBottom: 8 }}>
-          Skills to watch
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-          {trending.map((t) => (
-            <span key={t} style={{
-              fontSize: 11, fontWeight: 500, padding: "4px 10px", borderRadius: 6,
-              background: "rgba(197,129,28,0.09)", color: "#8c6113",
-            }}>{t}</span>
-          ))}
-        </div>
-      </div>
     </MockCard>
   );
 }
 
 function InferredSkillsMock() {
-  const matched = ["Product strategy", "Stakeholder mgmt", "Agile / Scrum", "Roadmapping"];
-  const inferred = ["Data analysis", "User research", "KPI ownership"];
   return (
     <MockCard>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#5f8b2e" }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Matched</span>
-        <span style={{
-          fontSize: 11, fontWeight: 700, color: "#5f8b2e",
-          background: "rgba(95,139,46,0.12)", borderRadius: 99, padding: "2px 8px",
-        }}>{matched.length}</span>
+      <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 8px" }}>Matched</p>
+      <div style={{ marginBottom: 16 }}>
+        {SAMPLE.matched.map((m) => <SkillPill key={m} text={m} matched />)}
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 18 }}>
-        {matched.map((s) => (
+      <p style={{ fontSize: 11.5, fontWeight: 700, color: "#a7a99f", letterSpacing: "0.05em", textTransform: "uppercase", margin: "0 0 8px" }}>Inferred</p>
+      <div>
+        {SAMPLE.inferred.map((s) => (
           <span key={s} style={{
-            fontSize: 12, fontWeight: 500, padding: "5px 12px", borderRadius: 99,
-            background: "rgba(95,139,46,0.10)", color: "#437a1a",
+            display: "inline-block", fontSize: 13, fontWeight: 500, padding: "5px 11px", borderRadius: 999, margin: "3px 3px 0 0",
+            background: "rgba(95,139,46,0.07)", color: "#5f8b2e", border: "1px dashed rgba(95,139,46,0.30)",
           }}>{s}</span>
         ))}
       </div>
-      <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: MUTED, marginBottom: 10 }}>
-          Inferred from your CV
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 10 }}>
-          {inferred.map((s) => (
-            <span key={s} style={{
-              fontSize: 12, fontWeight: 500, padding: "5px 12px", borderRadius: 99,
-              background: "rgba(95,139,46,0.07)", color: "#5f8b2e",
-              border: "1px dashed rgba(95,139,46,0.35)",
-            }}>{s}</span>
-          ))}
-        </div>
-        <p style={{ fontSize: 11.5, color: MUTED, fontStyle: "italic", lineHeight: 1.55, margin: 0 }}>
-          Skills we deduced you have — even when not explicitly listed.
-        </p>
-      </div>
+      <p style={{ fontSize: 12, color: MUTED, fontStyle: "italic", lineHeight: 1.55, margin: "14px 0 0" }}>
+        Described in your experience, but never listed as a skill.
+      </p>
     </MockCard>
   );
 }
 
+function TrendingFeatureMock() {
+  return (
+    <MockCard>
+      <p style={{ fontSize: 13, fontWeight: 700, margin: "0 0 4px" }}>Trending for this role</p>
+      <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 14px" }}>{SAMPLE.role} · AI-researched profile</p>
+      {SAMPLE.trending.map((line) => (
+        <div key={line} style={{ display: "flex", gap: 10, marginBottom: 9, alignItems: "flex-start" }}>
+          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#c5811c", marginTop: 7, flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: "#52575f", lineHeight: 1.6 }}>{line}</span>
+        </div>
+      ))}
+    </MockCard>
+  );
+}
 
 /* ── feature section layout ─────────────────────────────────────────────── */
 
@@ -541,7 +424,7 @@ export default function LandingPage() {
               transition={{ duration: 0.6, delay: 0.18, ease: "easeOut" }}
               style={{ fontSize: 17, color: MUTED, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}
             >
-              Enter a role, upload your CV. TalentScan scores it against live postings, flags ATS problems, and surfaces the exact skill gaps standing between you and the job.
+              Enter a role, upload your CV. TalentScan scores it against an AI-researched profile of the role, flags ATS problems, and surfaces the exact skill gaps standing between you and the job.
             </motion.p>
 
             <motion.div
@@ -652,7 +535,7 @@ export default function LandingPage() {
               {
                 n: "01",
                 title: "Enter the role you want",
-                body: "Not a generic analysis. We pull live job postings for that specific title and market — then score your CV against what employers are actually asking for right now.",
+                body: "Not a generic analysis. We research that specific title and build a profile of the skills, experience and tools employers expect — then score your CV against it. Paste a job description instead and we score against that.",
               },
               {
                 n: "02",
@@ -662,7 +545,7 @@ export default function LandingPage() {
               {
                 n: "03",
                 title: "Get your full breakdown",
-                body: "Match score, ATS flags, skill gaps, inferred skills, and live market trends — all in one report. Know exactly what to fix before you apply.",
+                body: "Match score, ATS flags, skill gaps, inferred skills, and role trends — all in one report. Know exactly what to fix before you apply.",
               },
             ].map((step, i) => (
               <FadeUp key={step.n} delay={i * 0.1}>
@@ -693,7 +576,7 @@ export default function LandingPage() {
         <FeatureSection
           eyebrow="Match score"
           headline="A score that tells you why."
-          body="87/100 without context is noise. We show exactly which requirements you matched, which you're missing, and how many live postings cite each gap — so you know what's worth fixing."
+          body="A bare number is noise. We show exactly which requirements you matched, which you're missing, and how much each one matters — so you know what's worth fixing."
           mock={<ScoreFeatureMock />}
         />
         <FeatureSection
@@ -704,9 +587,9 @@ export default function LandingPage() {
           flip
         />
         <FeatureSection
-          eyebrow="Skill gaps · live data"
-          headline="Gaps from live postings, not guesswork."
-          body={`"9 of 10 current postings for this role mention SQL. Your CV doesn't mention it." That's actionable. Every gap is grounded in real listings for the specific role you entered.`}
+          eyebrow="Skill gaps"
+          headline="Gaps ranked by how much they matter."
+          body="Every missing skill is tagged as a must-have, nice-to-have or differentiator for the role you entered, so you fix what moves your score first."
           mock={<GapsFeatureMock />}
         />
         <FeatureSection
@@ -718,8 +601,8 @@ export default function LandingPage() {
         />
         <FeatureSection
           eyebrow="Market intelligence"
-          headline="What the market is actually hiring for."
-          body="Not generic advice — live signal from current postings. We tell you which skills are trending for your target role right now, so you know what's worth adding before you apply."
+          headline="What's trending for your role."
+          body="We tell you which skills are trending for your target role, so you know what's worth adding before you apply."
           mock={<TrendingFeatureMock />}
         />
       </div>
