@@ -73,18 +73,9 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div style={{ display: "flex", height: "100%", minHeight: "100vh" }}>
+    <div className="ts-dash">
       {/* Left: upload panel */}
-      <div style={{
-        width: 312,
-        flexShrink: 0,
-        borderRight: "1px solid #ecebe3",
-        padding: "28px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
-        background: "#fff",
-      }}>
+      <div className="ts-upload">
         <div>
           <p style={{
             fontFamily: "var(--font-serif), 'Source Serif 4', serif",
@@ -182,7 +173,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Right: results */}
-      <div style={{ flex: 1, overflowY: "auto" }}>
+      <div className="ts-results">
         <ResultsPanel />
       </div>
     </div>

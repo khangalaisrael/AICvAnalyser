@@ -197,8 +197,8 @@ export function CoachingPanel({ coaching }: Props) {
       {(quickWins.length > 0 || longerTerm.length > 0) && (
         <div style={{
           paddingTop: 24, borderTop: "1px solid #f0efe8",
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24,
-        }}>
+          gap: 24,
+        }} className="ts-grid-2">
           {quickWins.length > 0 && (
             <div>
               <p style={{ fontSize: 11.5, fontWeight: 700, color: "#5f8b2e", letterSpacing: "0.05em", textTransform: "uppercase", margin: "0 0 12px" }}>

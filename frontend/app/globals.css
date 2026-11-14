@@ -39,3 +39,56 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+html, body { overflow-x: hidden; }
+
+/* ── App shell (dashboard) ─────────────────────────── */
+.ts-shell { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
+.ts-main { flex: 1; min-width: 0; overflow-y: auto; background: #faf9f5; }
+.ts-topbar, .ts-backdrop { display: none; }
+.ts-sidebar {
+  width: 264px; flex-shrink: 0; height: 100%;
+  display: flex; flex-direction: column;
+  background: #fbfaf6; border-right: 1px solid #ecebe3; overflow: hidden;
+}
+.ts-dash { display: flex; height: 100%; min-height: 100%; }
+.ts-upload {
+  width: 312px; flex-shrink: 0; border-right: 1px solid #ecebe3;
+  padding: 28px 24px; display: flex; flex-direction: column; gap: 20px; background: #fff;
+}
+.ts-results { flex: 1; min-width: 0; overflow-y: auto; }
+.ts-grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.ts-results-pad { padding: 40px 44px; max-width: 800px; margin: 0 auto; }
+.ts-hero-card { gap: 36px; padding: 32px 36px; }
+.ts-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; padding-top: 96px; padding-bottom: 96px; }
+.ts-cta-card { padding: 80px 48px; }
+
+@media (max-width: 860px) {
+  .ts-shell { flex-direction: column; }
+  .ts-topbar {
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    height: 52px; padding: 0 12px; background: #fbfaf6; border-bottom: 1px solid #ecebe3;
+  }
+  .ts-topbar button {
+    width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+    background: none; border: none; border-radius: 10px; cursor: pointer; color: #22272f;
+  }
+  .ts-sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
+    width: min(300px, 86vw); transform: translateX(-102%);
+    transition: transform 0.2s ease; box-shadow: none;
+  }
+  .ts-sidebar[data-open="true"] { transform: none; box-shadow: 0 0 40px rgba(34, 39, 47, 0.25); }
+  .ts-backdrop[data-open="true"] { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(34, 39, 47, 0.35); }
+  .ts-dash { flex-direction: column; height: auto; }
+  .ts-upload { width: 100%; border-right: none; border-bottom: 1px solid #ecebe3; padding: 20px 16px; }
+  .ts-results { overflow: visible; }
+}
+
+@media (max-width: 640px) {
+  .ts-results-pad { padding: 24px 16px; }
+  .ts-hero-card { gap: 20px; padding: 22px 18px; }
+  .ts-grid-2 { grid-template-columns: 1fr; }
+  .ts-feature-grid { grid-template-columns: 1fr; gap: 32px; padding-top: 56px; padding-bottom: 56px; }
+  .ts-cta-card { padding: 48px 20px; }
+}

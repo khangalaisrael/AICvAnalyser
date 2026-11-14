@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CandidateList } from "./CandidateList";
 
-export function Sidebar() {
+export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -14,16 +14,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside style={{
-      width: 264,
-      flexShrink: 0,
-      height: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      background: "#fbfaf6",
-      borderRight: "1px solid #ecebe3",
-      overflow: "hidden",
-    }}>
+    <aside className="ts-sidebar" data-open={open}>
       {/* Brand */}
       <div style={{ padding: "18px 16px 14px", borderBottom: "1px solid #ecebe3", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -38,10 +29,16 @@ export function Sidebar() {
           </div>
           <span style={{
             fontFamily: "var(--font-serif), 'Source Serif 4', serif",
-            fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em", color: "#22272f",
+            fontSize: 17, fontWeight: 600, letterSpacing: "-0.01em", color: "#22272f", flex: 1,
           }}>
             TalentScan
           </span>
+          {onClose && (
+            <button type="button" aria-label="Close menu" onClick={onClose} className="ts-topbar-close"
+              style={{ background: "none", border: "none", padding: 8, margin: -8, cursor: "pointer", color: "#7c818b", display: open ? "inline-flex" : "none" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
+            </button>
+          )}
         </div>
       </div>
 

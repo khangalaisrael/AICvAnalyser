@@ -390,16 +390,8 @@ function FeatureSection({
   return (
     <div style={{ borderTop: `1px solid ${BORDER}` }}>
       <div
-        className="mx-auto px-6"
-        style={{
-          maxWidth: 1100,
-          paddingTop: 96,
-          paddingBottom: 96,
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 72,
-          alignItems: "center",
-        }}
+        className="mx-auto px-6 ts-feature-grid"
+        style={{ maxWidth: 1100, alignItems: "center" }}
       >
         {/* text first or second depending on flip */}
         {flip ? (
@@ -740,8 +732,9 @@ export default function LandingPage() {
       <section className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 80, paddingBottom: 80 }}>
         <FadeUp>
           <div
+            className="ts-cta-card"
             style={{
-              borderRadius: 24, padding: "80px 48px", background: INK,
+              borderRadius: 24, background: INK,
               textAlign: "center", position: "relative", overflow: "hidden",
             }}
           >

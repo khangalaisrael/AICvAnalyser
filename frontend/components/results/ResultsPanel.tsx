@@ -97,7 +97,7 @@ export function ResultsPanel() {
   const senStyle        = seniority ? SENIORITY_STYLE[seniority] : null;
 
   return (
-    <div style={{ padding: "40px 44px", maxWidth: 800, margin: "0 auto" }}>
+    <div className="ts-results-pad">
 
       {/* Candidate name */}
       <p style={{
@@ -126,10 +126,10 @@ export function ResultsPanel() {
       )}
 
       {/* Hero card */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 36,
+      <div className="ts-hero-card" style={{
+        display: "flex", alignItems: "center",
         background: "#fff", border: "1px solid #ecebe3",
-        borderRadius: 24, padding: "32px 36px", flexWrap: "wrap", marginBottom: 20,
+        borderRadius: 24, flexWrap: "wrap", marginBottom: 20,
       }}>
         <ScoreRing score={score} />
 
@@ -292,7 +292,7 @@ export function ResultsPanel() {
       )}
 
       {/* Skills — 2-column editorial layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
+      <div className="ts-grid-2" style={{ gap: 16, marginBottom: 36 }}>
         {/* Left: Matched + Inferred */}
         <div style={{ background: "#fff", border: "1px solid #ecebe3", borderRadius: 18, padding: "24px 26px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -368,7 +368,7 @@ export function ResultsPanel() {
           }}>
             Unique strengths
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="ts-grid-2" style={{ gap: 12 }}>
             {strengths.map((s, i) => (
               <div key={i} style={{
                 background: "#fff", border: "1px solid #ecebe3",
