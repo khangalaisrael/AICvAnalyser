@@ -122,3 +122,48 @@ html, body { overflow-x: hidden; }
   .lp-cta-row > a { flex: 1 1 100%; justify-content: center; }
   .lp-footer { flex-direction: column; align-items: flex-start !important; gap: 12px !important; }
 }
+
+/* ── Landing: premium layer ───────────────────────── */
+.lp-hero-bg {
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(242,92,84,0.10), transparent 60%),
+    radial-gradient(700px 360px at 0% 0%, rgba(197,129,28,0.06), transparent 60%);
+}
+.lp-hero { padding-top: 72px; padding-bottom: 64px; }
+.lp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.lp-step {
+  display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px;
+  background: #fff; border: 1px solid #ecebe3; border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(34,39,47,0.03), 0 8px 24px -12px rgba(34,39,47,0.08);
+}
+.lp-step-n {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+  color: #f25c54; background: rgba(242,92,84,0.1);
+}
+.lp-tabs {
+  display: flex; gap: 4px; padding: 5px; width: fit-content; max-width: 100%;
+  margin: 0 auto 22px; overflow-x: auto; scrollbar-width: none;
+  background: rgba(255,255,255,0.8); border: 1px solid #ecebe3; border-radius: 999px;
+  box-shadow: 0 6px 24px -12px rgba(34,39,47,0.15);
+}
+.lp-tabs::-webkit-scrollbar { display: none; }
+.lp-panel {
+  background: #fff; border: 1px solid #ecebe3; border-radius: 26px; padding: 44px 48px;
+  min-height: 420px; display: flex; align-items: center;
+  box-shadow: 0 1px 2px rgba(34,39,47,0.03), 0 24px 60px -28px rgba(34,39,47,0.18);
+}
+.lp-panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; width: 100%; }
+
+@media (max-width: 860px) {
+  .lp-steps { grid-template-columns: 1fr; gap: 10px; }
+  .lp-panel { padding: 28px 22px; min-height: 0; border-radius: 22px; }
+  .lp-panel-grid { grid-template-columns: 1fr; gap: 28px; }
+}
+@media (max-width: 640px) {
+  .lp-hero { padding-top: 36px; padding-bottom: 36px; }
+  .lp-tabs { margin-left: 0; margin-right: 0; width: 100%; }
+}
+@media (min-width: 1024px) {
+  .lp-hero-visual { justify-content: flex-end; }
+}
