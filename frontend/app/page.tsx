@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { AnimatePresence, motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 
 /* ── design tokens ──────────────────────────────────────────────────────── */
@@ -376,126 +376,67 @@ function InferredSkillsMock() {
 }
 
 
-/* ── explore tabs ───────────────────────────────────────────────────────── */
+/* ── feature section layout ─────────────────────────────────────────────── */
 
-const SERIF = "var(--font-serif), 'Source Serif 4', serif";
-
-const FEATURES: {
-  id: string; tab: string; eyebrow: string; headline: string; body: string; mock: React.ReactNode;
-}[] = [
-  {
-    id: "score", tab: "Match score", eyebrow: "Match score",
-    headline: "A score that tells you why.",
-    body: "87/100 without context is noise. See exactly which requirements you matched, which you're missing, and how many live postings cite each gap.",
-    mock: <ScoreFeatureMock />,
-  },
-  {
-    id: "ats", tab: "ATS check", eyebrow: "ATS check",
-    headline: "The problems ATS systems actually catch.",
-    body: "Two-column layouts, contact info in headers, tables in skills sections. We flag the real parsing issues, not CV folklore.",
-    mock: <AtsFeatureMock />,
-  },
-  {
-    id: "gaps", tab: "Skill gaps", eyebrow: "Skill gaps · live data",
-    headline: "Gaps from live postings, not guesswork.",
-    body: "\"9 of 10 current postings mention SQL. Your CV doesn't.\" Every gap is grounded in real listings for the role you entered.",
-    mock: <GapsFeatureMock />,
-  },
-  {
-    id: "inferred", tab: "Inferred skills", eyebrow: "Inferred skills",
-    headline: "Skills you have, even when you didn't say so.",
-    body: "We read between the lines and flag inferred skills, so you know what you can claim confidently and what to make explicit.",
-    mock: <InferredSkillsMock />,
-  },
-  {
-    id: "market", tab: "Market trends", eyebrow: "Market intelligence",
-    headline: "What the market is actually hiring for.",
-    body: "Live signal from current postings: which skills are trending for your target role right now, before you apply.",
-    mock: <TrendingFeatureMock />,
-  },
-];
-
-const STEPS = [
-  { n: "1", title: "Enter your target role", body: "We pull live postings for that title and market." },
-  { n: "2", title: "Upload your CV", body: "Any PDF. Scored against what employers ask for now." },
-  { n: "3", title: "Get your breakdown", body: "Score, ATS flags, gaps and trends in one report." },
-];
-
-function PrimaryButton({ children, href = "/auth", large = false }: { children: React.ReactNode; href?: string; large?: boolean }) {
+function FeatureSection({
+  eyebrow, headline, body, mock, flip = false,
+}: {
+  eyebrow: string;
+  headline: string;
+  body: string;
+  mock: React.ReactNode;
+  flip?: boolean;
+}) {
   return (
-    <Link href={href}
-      className="inline-flex items-center justify-center gap-2 transition-all hover:-translate-y-px hover:opacity-95 active:scale-[0.98]"
-      style={{
-        fontSize: large ? 15.5 : 13.5, fontWeight: 650, color: "white",
-        background: `linear-gradient(180deg, #f46a62 0%, ${CORAL} 100%)`,
-        borderRadius: large ? 13 : 10, padding: large ? "14px 28px" : "9px 18px",
-        textDecoration: "none",
-        boxShadow: "0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 22px rgba(242,92,84,0.32)",
-      }}>
-      {children} <Arrow size={large ? 15 : 13} />
-    </Link>
+    <div style={{ borderTop: `1px solid ${BORDER}` }}>
+      <div
+        className="mx-auto px-6 ts-feature-grid"
+        style={{ maxWidth: 1100, alignItems: "center" }}
+      >
+        {/* text first or second depending on flip */}
+        {flip ? (
+          <>
+            <FadeUp delay={0.1}>
+              <div style={{ display: "flex", justifyContent: "center" }}>{mock}</div>
+            </FadeUp>
+            <FadeUp delay={0.0}>
+              <TextBlock eyebrow={eyebrow} headline={headline} body={body} />
+            </FadeUp>
+          </>
+        ) : (
+          <>
+            <FadeUp delay={0.0}>
+              <TextBlock eyebrow={eyebrow} headline={headline} body={body} />
+            </FadeUp>
+            <FadeUp delay={0.1}>
+              <div style={{ display: "flex", justifyContent: "center" }}>{mock}</div>
+            </FadeUp>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
-function ExplorePanel() {
-  const [active, setActive] = useState(FEATURES[0].id);
-  const f = FEATURES.find((x) => x.id === active) ?? FEATURES[0];
-
+function TextBlock({ eyebrow, headline, body }: { eyebrow: string; headline: string; body: string }) {
   return (
     <div>
-      <div className="lp-tabs" role="tablist" aria-label="Explore features">
-        {FEATURES.map((x) => {
-          const on = x.id === active;
-          return (
-            <button
-              key={x.id} role="tab" aria-selected={on} onClick={() => setActive(x.id)}
-              style={{
-                position: "relative", whiteSpace: "nowrap", cursor: "pointer", border: "none",
-                background: "transparent", fontFamily: "inherit", fontSize: 13.5,
-                fontWeight: on ? 650 : 500, color: on ? "#fff" : MUTED,
-                padding: "9px 16px", borderRadius: 999, transition: "color .2s",
-              }}
-            >
-              {on && (
-                <motion.span
-                  layoutId="lp-tab-pill"
-                  transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                  style={{ position: "absolute", inset: 0, borderRadius: 999, background: INK, boxShadow: "0 4px 14px rgba(34,39,47,0.22)" }}
-                />
-              )}
-              <span style={{ position: "relative" }}>{x.tab}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="lp-panel">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={f.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="lp-panel-grid"
-          >
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: CORAL, marginBottom: 14 }}>
-                {f.eyebrow}
-              </p>
-              <h3 style={{
-                fontFamily: SERIF, fontSize: "clamp(24px, 3.2vw, 36px)", fontWeight: 600,
-                letterSpacing: "-0.02em", lineHeight: 1.15, color: INK, marginBottom: 14,
-              }}>
-                {f.headline}
-              </h3>
-              <p style={{ fontSize: 15.5, color: MUTED, lineHeight: 1.7, marginBottom: 24, maxWidth: 420 }}>{f.body}</p>
-              <PrimaryButton>Try it free</PrimaryButton>
-            </div>
-            <div style={{ display: "flex", justifyContent: "center" }}>{f.mock}</div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      <p style={{
+        fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+        textTransform: "uppercase", color: MUTED, marginBottom: 18,
+      }}>
+        {eyebrow}
+      </p>
+      <h2 style={{
+        fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 700,
+        letterSpacing: "-0.025em", lineHeight: 1.15,
+        color: INK, marginBottom: 18,
+      }}>
+        {headline}
+      </h2>
+      <p style={{ fontSize: 16, color: MUTED, lineHeight: 1.75, maxWidth: 440 }}>
+        {body}
+      </p>
     </div>
   );
 }
@@ -503,154 +444,370 @@ function ExplorePanel() {
 /* ── main page ──────────────────────────────────────────────────────────── */
 
 export default function LandingPage() {
-  return (
-    <div className="min-h-[100dvh] lp-root" style={{ background: BG, color: INK, fontFamily: "var(--font-sans), sans-serif" }}>
 
-      {/* NAV */}
-      <nav className="sticky top-0 z-50" style={{
-        borderBottom: `1px solid ${BORDER}`, background: "rgba(250,249,245,0.85)",
-        backdropFilter: "blur(18px) saturate(1.4)", WebkitBackdropFilter: "blur(18px) saturate(1.4)",
-      }}>
-        <div className="flex items-center justify-between mx-auto px-5 sm:px-6" style={{ maxWidth: 1100, height: 62 }}>
+  return (
+    <div className="min-h-[100dvh]" style={{ background: BG, color: INK, fontFamily: "var(--font-sans), sans-serif" }}>
+
+      {/* ── NAV ────────────────────────────────────────────────────── */}
+      <nav
+        className="sticky top-0 z-50"
+        style={{
+          borderBottom: `1px solid ${BORDER}`,
+          background: "rgba(250,249,245,0.90)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between mx-auto px-6"
+          style={{ maxWidth: 1100, height: 64 }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <LogoMark size={30} />
-            <span style={{ fontSize: 15.5, fontWeight: 700, letterSpacing: "-0.01em" }}>TalentScan</span>
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", color: INK }}>TalentScan</span>
           </div>
+
           <div className="hidden sm:flex items-center gap-7">
-            <a href="#how" className="hover:text-[#22272f] transition-colors" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}>How it works</a>
-            <a href="#explore" className="hover:text-[#22272f] transition-colors" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}>Features</a>
-            <PrimaryButton>Analyze my CV</PrimaryButton>
+            <a href="#how-it-works" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}
+              className="hover:text-[#22272f] transition-colors">
+              How it works
+            </a>
+            <a href="#features" style={{ fontSize: 13.5, color: MUTED, textDecoration: "none" }}
+              className="hover:text-[#22272f] transition-colors">
+              Features
+            </a>
+            <Link href="/auth"
+              className="inline-flex items-center gap-[6px] transition-all hover:opacity-90 active:scale-[0.98]"
+              style={{
+                fontSize: 13.5, fontWeight: 600, color: "white",
+                background: CORAL, borderRadius: 10, padding: "8px 18px",
+                textDecoration: "none", boxShadow: "0 2px 10px rgba(242,92,84,0.30)",
+              }}>
+              Analyze my CV <Arrow size={13} />
+            </Link>
           </div>
-          <Link href="/auth" className="sm:hidden" style={{ fontSize: 13.5, fontWeight: 650, color: CORAL, textDecoration: "none" }}>
+
+          <Link href="/auth"
+            className="sm:hidden"
+            style={{ fontSize: 13.5, fontWeight: 600, color: CORAL, textDecoration: "none" }}>
             Get started
           </Link>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="lp-hero-bg">
-        <div className="mx-auto px-5 sm:px-6 lp-hero" style={{ maxWidth: 1100 }}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_460px] gap-12 lg:gap-16 items-center">
-            <div>
-              <motion.span
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 7, marginBottom: 24,
-                  fontSize: 11.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
-                  color: CORAL, background: "rgba(242,92,84,0.08)", border: "1px solid rgba(242,92,84,0.18)",
-                  borderRadius: 99, padding: "6px 13px",
-                }}>
+      {/* ── HERO ───────────────────────────────────────────────────── */}
+      <div className="lp-hero-bg">
+      <section className="mx-auto px-6 lp-hero" style={{ maxWidth: 1100 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-16 items-center">
+
+          {/* left: headline + CTAs */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              style={{ marginBottom: 28 }}
+            >
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
+                color: CORAL, background: "rgba(242,92,84,0.09)",
+                border: "1px solid rgba(242,92,84,0.20)", borderRadius: 99, padding: "5px 12px",
+              }}>
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: CORAL }} />
                 Free CV analysis
-              </motion.span>
+              </span>
+            </motion.div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                fontSize: "clamp(36px, 5.5vw, 60px)",
+                fontWeight: 700, lineHeight: 1.08,
+                letterSpacing: "-0.03em", color: INK,
+                marginBottom: 22,
+              }}
+            >
+              Know exactly where
+              <br />
+              your CV stands.
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.18, ease: "easeOut" }}
+              style={{ fontSize: 17, color: MUTED, lineHeight: 1.75, maxWidth: 460, marginBottom: 36 }}
+            >
+              Enter a role, upload your CV. TalentScan scores it against live postings, flags ATS problems, and surfaces the exact skill gaps standing between you and the job.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.28, ease: "easeOut" }}
+              className="lp-cta-row"
+              style={{ display: "flex", flexWrap: "wrap", gap: 12 }}
+            >
+              <Link href="/auth"
+                className="inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{
-                  fontFamily: SERIF, fontSize: "clamp(38px, 6vw, 64px)", fontWeight: 600,
-                  lineHeight: 1.05, letterSpacing: "-0.03em", marginBottom: 20,
+                  fontSize: 15, fontWeight: 700, color: "white",
+                  background: CORAL, borderRadius: 11, padding: "13px 26px",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 20px rgba(242,92,84,0.30)",
                 }}>
-                Know exactly where your CV <span style={{ color: CORAL, fontStyle: "italic" }}>stands.</span>
-              </motion.h1>
+                Analyze my CV <Arrow size={14} />
+              </Link>
+              <a href="#how-it-works"
+                className="inline-flex items-center gap-2 transition-all hover:bg-[#f0efe7] active:scale-[0.98]"
+                style={{
+                  fontSize: 15, fontWeight: 500, color: INK,
+                  background: "transparent", border: `1px solid ${BORDER}`,
+                  borderRadius: 11, padding: "13px 22px", textDecoration: "none",
+                }}>
+                See how it works
+              </a>
+            </motion.div>
 
-              <motion.p
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.16 }}
-                style={{ fontSize: 17, color: MUTED, lineHeight: 1.7, maxWidth: 470, marginBottom: 30 }}>
-                Score your CV against live job postings, catch ATS problems, and close skill gaps before you apply.
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.26 }}
-                className="lp-cta-row" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
-                <PrimaryButton large>Analyze my CV</PrimaryButton>
-                <a href="#explore"
-                  className="inline-flex items-center justify-center transition-all hover:bg-white active:scale-[0.98]"
-                  style={{ fontSize: 15, fontWeight: 550, color: INK, border: `1px solid ${BORDER}`, borderRadius: 13, padding: "13px 22px", textDecoration: "none", background: "rgba(255,255,255,0.5)" }}>
-                  See features
-                </a>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.45 }}
-                style={{ display: "flex", gap: 18, marginTop: 22, flexWrap: "wrap" }}>
-                {["Free to use", "Any PDF format", "No credit card"].map((txt) => (
-                  <div key={txt} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Check size={10} pass />
-                    <span style={{ fontSize: 13, color: MUTED }}>{txt}</span>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* visual */}
-            <div className="flex items-center justify-center gap-4 lp-hero-visual">
-              <div className="hidden lg:block"><PlainCvCard /></div>
-              <div className="hidden lg:block" style={{ color: "#d4d3cb" }}><Arrow size={18} /></div>
-              <ScoreResultCard />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS: compact strip */}
-      <section id="how" className="mx-auto px-5 sm:px-6" style={{ maxWidth: 1100, paddingBottom: 56 }}>
-        <div className="lp-steps">
-          {STEPS.map((st, i) => (
-            <FadeUp key={st.n} delay={i * 0.08}>
-              <div className="lp-step">
-                <span className="lp-step-n">{st.n}</span>
-                <div>
-                  <p style={{ fontSize: 15, fontWeight: 650, marginBottom: 3 }}>{st.title}</p>
-                  <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55 }}>{st.body}</p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              style={{ display: "flex", gap: 18, marginTop: 22, flexWrap: "wrap" }}
+            >
+              {["Free to use", "Any PDF format", "No credit card"].map((txt) => (
+                <div key={txt} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Check size={10} pass={true} />
+                  <span style={{ fontSize: 13, color: MUTED }}>{txt}</span>
                 </div>
-              </div>
-            </FadeUp>
-          ))}
+              ))}
+            </motion.div>
+          </div>
+
+          {/* compact preview below lg */}
+          <div className="flex justify-center lg:hidden">
+            <ScoreResultCard />
+          </div>
+
+          {/* right: CV → score transformation */}
+          <div className="hidden lg:flex items-center justify-center gap-4">
+            <PlainCvCard />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.42 }}
+              style={{ color: "#d4d3cb", flexShrink: 0 }}
+            >
+              <Arrow size={18} />
+            </motion.div>
+            <ScoreResultCard />
+          </div>
+        </div>
+      </section>
+      </div>
+
+      {/* ── PROBLEM ────────────────────────────────────────────────── */}
+      <section style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
+        <FadeUp>
+          <div
+            className="mx-auto px-6 text-center lp-pad"
+            style={{ maxWidth: 740 }}
+          >
+            <p style={{
+              fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 600,
+              color: INK, lineHeight: 1.4, letterSpacing: "-0.02em",
+            }}>
+              Most candidates submit their CV and hope.
+              <span style={{ color: MUTED }}> You'll know exactly where you're competitive and where you're not — before you hit send.</span>
+            </p>
+          </div>
+        </FadeUp>
+      </section>
+
+      {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
+      <section id="how-it-works">
+        <div className="mx-auto px-6 lp-pad-lg" style={{ maxWidth: 1100 }}>
+          <FadeUp>
+            <div className="lp-head" style={{ marginBottom: 64 }}>
+              <p style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+                textTransform: "uppercase", color: MUTED, marginBottom: 16,
+              }}>
+                How it works
+              </p>
+              <h2 style={{
+                fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 700,
+                letterSpacing: "-0.025em", lineHeight: 1.12, color: INK, maxWidth: 540,
+              }}>
+                Three steps to a stronger application.
+              </h2>
+            </div>
+          </FadeUp>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 48 }}>
+            {[
+              {
+                n: "01",
+                title: "Enter the role you want",
+                body: "Not a generic analysis. We pull live job postings for that specific title and market — then score your CV against what employers are actually asking for right now.",
+              },
+              {
+                n: "02",
+                title: "See where you're competitive",
+                body: "Match score, ATS flags, skill gaps, trending requirements. Every finding is specific and grounded in real data — not AI assumptions about what a CV 'should' look like.",
+              },
+              {
+                n: "03",
+                title: "Get your full breakdown",
+                body: "Match score, ATS flags, skill gaps, inferred skills, and live market trends — all in one report. Know exactly what to fix before you apply.",
+              },
+            ].map((step, i) => (
+              <FadeUp key={step.n} delay={i * 0.1}>
+                <div>
+                  <div style={{
+                    fontSize: 52, fontWeight: 800, letterSpacing: "-0.05em",
+                    color: BORDER, lineHeight: 1, marginBottom: 22,
+                    fontFamily: MONO,
+                  }}>
+                    {step.n}
+                  </div>
+                  <h3 style={{
+                    fontSize: 18, fontWeight: 700, color: INK,
+                    letterSpacing: "-0.015em", marginBottom: 12,
+                  }}>
+                    {step.title}
+                  </h3>
+                  <p style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.75 }}>{step.body}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* EXPLORE */}
-      <section id="explore" className="mx-auto px-5 sm:px-6" style={{ maxWidth: 1100, paddingBottom: 72, scrollMarginTop: 70 }}>
-        <FadeUp>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px, 3.6vw, 40px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.15 }}>
-              Everything in one report.
-            </h2>
-            <p style={{ fontSize: 15.5, color: MUTED, marginTop: 10 }}>Tap a feature to see it.</p>
-          </div>
-          <ExplorePanel />
-        </FadeUp>
-      </section>
+      {/* ── FEATURES ───────────────────────────────────────────────── */}
+      <div id="features">
+        <FeatureSection
+          eyebrow="Match score"
+          headline="A score that tells you why."
+          body="87/100 without context is noise. We show exactly which requirements you matched, which you're missing, and how many live postings cite each gap — so you know what's worth fixing."
+          mock={<ScoreFeatureMock />}
+        />
+        <FeatureSection
+          eyebrow="ATS check"
+          headline="The problems ATS systems actually catch."
+          body="Two-column layouts, contact info in headers, tables in skills sections — these are the real reasons CVs fail to parse. We flag the actual issues, not CV folklore."
+          mock={<AtsFeatureMock />}
+          flip
+        />
+        <FeatureSection
+          eyebrow="Skill gaps · live data"
+          headline="Gaps from live postings, not guesswork."
+          body={`"9 of 10 current postings for this role mention SQL. Your CV doesn't mention it." That's actionable. Every gap is grounded in real listings for the specific role you entered.`}
+          mock={<GapsFeatureMock />}
+        />
+        <FeatureSection
+          eyebrow="Inferred skills"
+          headline="Skills you have — even when you didn't say so."
+          body="We read between the lines. If your CV describes managing a data pipeline but doesn't list SQL, we flag it as inferred — so you know what you can confidently claim and what to make explicit."
+          mock={<InferredSkillsMock />}
+          flip
+        />
+        <FeatureSection
+          eyebrow="Market intelligence"
+          headline="What the market is actually hiring for."
+          body="Not generic advice — live signal from current postings. We tell you which skills are trending for your target role right now, so you know what's worth adding before you apply."
+          mock={<TrendingFeatureMock />}
+        />
+      </div>
 
-      {/* CTA */}
-      <section className="mx-auto px-5 sm:px-6" style={{ maxWidth: 1100, paddingBottom: 64 }}>
+      {/* ── HONESTY STRIP ──────────────────────────────────────────── */}
+      <div style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
         <FadeUp>
-          <div className="ts-cta-card" style={{ borderRadius: 26, background: INK, textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div className="mx-auto px-6 text-center lp-pad-sm" style={{ maxWidth: 700 }}>
+            <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.7 }}>
+              TalentScan is an assessment and improvement tool — not a hiring guarantee.
+              We show you where you're competitive and where you're not. What you do with that is yours.
+            </p>
+          </div>
+        </FadeUp>
+      </div>
+
+      {/* ── FINAL CTA ──────────────────────────────────────────────── */}
+      <section className="mx-auto px-6 lp-pad" style={{ maxWidth: 1100 }}>
+        <FadeUp>
+          <div
+            className="ts-cta-card"
+            style={{
+              borderRadius: 24, background: INK,
+              textAlign: "center", position: "relative", overflow: "hidden",
+            }}
+          >
+            {/* ambient glow */}
             <div style={{
-              position: "absolute", top: "0", left: "50%", transform: "translate(-50%,-40%)",
-              width: 640, height: 320, borderRadius: "50%", pointerEvents: "none",
-              background: "radial-gradient(ellipse, rgba(242,92,84,0.22) 0%, transparent 70%)",
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%,-50%)",
+              width: 600, height: 300, borderRadius: "50%",
+              background: "radial-gradient(ellipse, rgba(242,92,84,0.14) 0%, transparent 70%)",
+              pointerEvents: "none",
             }} />
-            <h2 className="relative" style={{ fontFamily: SERIF, fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.12, color: "#fff", marginBottom: 12 }}>
-              Find out where you stand.
+
+            <p className="relative" style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+              textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 20,
+            }}>
+              Free · No credit card
+            </p>
+            <h2 className="relative" style={{
+              fontSize: "clamp(26px, 4vw, 48px)", fontWeight: 700,
+              letterSpacing: "-0.03em", lineHeight: 1.1,
+              color: "white", marginBottom: 16,
+            }}>
+              See where you actually stand.
             </h2>
-            <p className="relative" style={{ fontSize: 15.5, color: "rgba(255,255,255,0.55)", marginBottom: 26 }}>Free. Takes about a minute.</p>
-            <div className="relative" style={{ display: "inline-flex" }}><PrimaryButton large>Analyze my CV</PrimaryButton></div>
+            <p className="relative mx-auto" style={{
+              fontSize: 16, color: "rgba(255,255,255,0.5)",
+              maxWidth: 420, lineHeight: 1.75, marginBottom: 36,
+            }}>
+              Upload your CV and the role you want. The analysis takes seconds.
+            </p>
+            <Link href="/auth"
+              className="relative inline-flex items-center gap-2 transition-all hover:opacity-95 active:scale-[0.98]"
+              style={{
+                fontSize: 15, fontWeight: 700, color: INK,
+                background: "white", borderRadius: 11, padding: "14px 30px",
+                textDecoration: "none", boxShadow: "0 4px 24px rgba(0,0,0,0.24)",
+              }}>
+              Analyze my CV <Arrow size={14} />
+            </Link>
           </div>
         </FadeUp>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ borderTop: `1px solid ${BORDER}`, padding: "24px 20px" }}>
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-3" style={{ maxWidth: 1100 }}>
+      {/* ── FOOTER ─────────────────────────────────────────────────── */}
+      <footer style={{ borderTop: `1px solid ${BORDER}`, padding: "28px 24px" }}>
+        <div
+          className="mx-auto flex flex-wrap items-center justify-between gap-4 lp-footer"
+          style={{ maxWidth: 1100 }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <LogoMark size={22} />
-            <span style={{ fontSize: 13.5, fontWeight: 700 }}>TalentScan</span>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: INK }}>TalentScan</span>
           </div>
-          <p style={{ fontSize: 12.5, color: MUTED }}>© 2026 TalentScan · An assessment tool, not a hiring guarantee.</p>
+          <p style={{ fontSize: 12.5, color: MUTED }}>
+            © 2026 TalentScan · Assessment tool, not a hiring guarantee.
+          </p>
+          <Link href="/auth"
+            style={{ fontSize: 13, fontWeight: 600, color: CORAL, textDecoration: "none" }}
+            className="hover:underline">
+            Analyze my CV →
+          </Link>
         </div>
       </footer>
+
     </div>
   );
 }
