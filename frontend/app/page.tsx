@@ -179,7 +179,7 @@ function MockCard({ children }: { children: React.ReactNode }) {
     <div style={{
       background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16,
       padding: "24px", boxShadow: "0 4px 24px rgba(34,39,47,0.07)",
-      maxWidth: 380,
+      maxWidth: 380, width: "100%",
     }}>
       {children}
     </div>
@@ -496,7 +496,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ───────────────────────────────────────────────────── */}
-      <section className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 88, paddingBottom: 104 }}>
+      <section className="mx-auto px-6 lp-hero" style={{ maxWidth: 1100 }}>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-16 items-center">
 
           {/* left: headline + CTAs */}
@@ -547,6 +547,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.28, ease: "easeOut" }}
+              className="lp-cta-row"
               style={{ display: "flex", flexWrap: "wrap", gap: 12 }}
             >
               <Link href="/auth"
@@ -585,6 +586,11 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
+          {/* compact preview below lg */}
+          <div className="flex justify-center lg:hidden">
+            <ScoreResultCard />
+          </div>
+
           {/* right: CV → score transformation */}
           <div className="hidden lg:flex items-center justify-center gap-4">
             <PlainCvCard />
@@ -605,8 +611,8 @@ export default function LandingPage() {
       <section style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
         <FadeUp>
           <div
-            className="mx-auto px-6 text-center"
-            style={{ maxWidth: 740, paddingTop: 80, paddingBottom: 80 }}
+            className="mx-auto px-6 text-center lp-pad"
+            style={{ maxWidth: 740 }}
           >
             <p style={{
               fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 600,
@@ -621,9 +627,9 @@ export default function LandingPage() {
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────── */}
       <section id="how-it-works">
-        <div className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 96, paddingBottom: 96 }}>
+        <div className="mx-auto px-6 lp-pad-lg" style={{ maxWidth: 1100 }}>
           <FadeUp>
-            <div style={{ marginBottom: 64 }}>
+            <div className="lp-head" style={{ marginBottom: 64 }}>
               <p style={{
                 fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
                 textTransform: "uppercase", color: MUTED, marginBottom: 16,
@@ -719,7 +725,7 @@ export default function LandingPage() {
       {/* ── HONESTY STRIP ──────────────────────────────────────────── */}
       <div style={{ borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`, background: CARD }}>
         <FadeUp>
-          <div className="mx-auto px-6 text-center" style={{ maxWidth: 700, paddingTop: 52, paddingBottom: 52 }}>
+          <div className="mx-auto px-6 text-center lp-pad-sm" style={{ maxWidth: 700 }}>
             <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.7 }}>
               TalentScan is an assessment and improvement tool — not a hiring guarantee.
               We show you where you're competitive and where you're not. What you do with that is yours.
@@ -729,7 +735,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── FINAL CTA ──────────────────────────────────────────────── */}
-      <section className="mx-auto px-6" style={{ maxWidth: 1100, paddingTop: 80, paddingBottom: 80 }}>
+      <section className="mx-auto px-6 lp-pad" style={{ maxWidth: 1100 }}>
         <FadeUp>
           <div
             className="ts-cta-card"
@@ -782,7 +788,7 @@ export default function LandingPage() {
       {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer style={{ borderTop: `1px solid ${BORDER}`, padding: "28px 24px" }}>
         <div
-          className="mx-auto flex flex-wrap items-center justify-between gap-4"
+          className="mx-auto flex flex-wrap items-center justify-between gap-4 lp-footer"
           style={{ maxWidth: 1100 }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
