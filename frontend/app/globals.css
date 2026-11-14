@@ -78,6 +78,7 @@ html, body { overflow-x: hidden; }
     width: min(300px, 86vw); transform: translateX(-102%);
     transition: transform 0.2s ease; box-shadow: none;
   }
+  .ts-sidebar-footer { padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
   .ts-sidebar[data-open="true"] { transform: none; box-shadow: 0 0 40px rgba(34, 39, 47, 0.25); }
   .ts-backdrop[data-open="true"] { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(34, 39, 47, 0.35); }
   .ts-topbar-cta {

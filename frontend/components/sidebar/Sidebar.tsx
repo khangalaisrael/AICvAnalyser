@@ -1,16 +1,25 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAppStore } from "@/store/appStore";
 import { createClient } from "@/lib/supabase/client";
 import { CandidateList } from "./CandidateList";
 
 export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const supabase = createClient();
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/auth");
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // fall through: still leave the dashboard
+    }
+    useAppStore.getState().setActiveCandidateId(null);
+    queryClient.clear();
+    // Full navigation so the middleware re-reads the cleared session cookies
+    // (a client-side push can be served from the router cache and bounce back).
+    window.location.assign("/auth");
   }
 
   return (
@@ -55,7 +64,7 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
       </div>
 
       {/* Footer: sign out */}
-      <div style={{ padding: "12px 16px", borderTop: "1px solid #ecebe3", flexShrink: 0 }}>
+      <div className="ts-sidebar-footer" style={{ padding: "12px 16px", borderTop: "1px solid #ecebe3", flexShrink: 0 }}>
         <button
           onClick={handleSignOut}
           style={{
