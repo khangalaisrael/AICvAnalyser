@@ -45,7 +45,7 @@ html, body { overflow-x: hidden; }
 /* ── App shell (dashboard) ─────────────────────────── */
 .ts-shell { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 .ts-main { flex: 1; min-width: 0; overflow-y: auto; background: #faf9f5; }
-.ts-topbar, .ts-backdrop, .ts-panel-close { display: none; }
+.ts-topbar, .ts-backdrop { display: none; }
 .ts-sidebar {
   width: 264px; flex-shrink: 0; height: 100%;
   display: flex; flex-direction: column;
@@ -86,16 +86,9 @@ html, body { overflow-x: hidden; }
     background: #f25c54 !important; color: #fff !important;
   }
   .ts-dash { display: block; height: auto; }
-  .ts-upload {
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
-    width: min(340px, 90vw); border-right: 1px solid #ecebe3; padding: 56px 18px 24px;
-    overflow-y: auto; transform: translateX(-102%); transition: transform 0.2s ease;
-  }
-  .ts-upload[data-open="true"] { transform: none; box-shadow: 0 0 40px rgba(34, 39, 47, 0.25); }
-  .ts-panel-close {
-    display: inline-flex; position: absolute; top: 8px; right: 8px; width: 40px; height: 40px;
-    align-items: center; justify-content: center; background: none; border: none; color: #7c818b; cursor: pointer;
-  }
+  .ts-upload { width: 100%; border-right: none; padding: 24px 18px 40px; min-height: calc(100dvh - 52px); }
+  .ts-dash[data-view="analyse"] .ts-results { display: none; }
+  .ts-dash[data-view="results"] .ts-upload { display: none; }
   .ts-results { overflow: visible; }
 }
 

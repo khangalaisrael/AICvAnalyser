@@ -7,10 +7,14 @@ import { useAppStore } from "@/store/appStore";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const panel = useAppStore((s) => s.mobilePanel);
   const setPanel = useAppStore((s) => s.setMobilePanel);
+  const setActive = useAppStore((s) => s.setActiveCandidateId);
   const activeCandidateId = useAppStore((s) => s.activeCandidateId);
 
   // Picking a candidate closes the side panel
-  useEffect(() => { if (activeCandidateId) setPanel(null); }, [activeCandidateId, setPanel]);
+  useEffect(() => {
+    setPanel(null);
+    document.querySelector(".ts-main")?.scrollTo(0, 0);
+  }, [activeCandidateId, setPanel]);
 
   useEffect(() => {
     if (!panel) return;
@@ -30,10 +34,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <span style={{ fontFamily: "var(--font-serif), 'Source Serif 4', serif", fontSize: 17, fontWeight: 600, color: "#22272f", flex: 1 }}>
           TalentScan
         </span>
-        <button type="button" className="ts-topbar-cta" aria-label="Analyse a CV" aria-expanded={panel === "analyse"} onClick={() => setPanel("analyse")}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-          Analyse
-        </button>
+        {activeCandidateId ? (
+          <button type="button" className="ts-topbar-cta" aria-label="New analysis" onClick={() => setActive(null)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            New
+          </button>
+        ) : null}
       </header>
       <div className="ts-backdrop" data-open={panel !== null} onClick={() => setPanel(null)} aria-hidden="true" />
       <Sidebar open={panel === "candidates"} onClose={() => setPanel(null)} />

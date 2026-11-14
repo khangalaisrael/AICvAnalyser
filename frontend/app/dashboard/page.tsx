@@ -34,8 +34,7 @@ export default function DashboardPage() {
   const [applyJd, setApplyJd] = useState("");
   const [step, setStep] = useState(0);
   const analyse = useAnalyse();
-  const panel = useAppStore((s) => s.mobilePanel);
-  const setPanel = useAppStore((s) => s.setMobilePanel);
+  const activeCandidateId = useAppStore((s) => s.activeCandidateId);
 
   useEffect(() => {
     if (!analyse.isPending) { setStep(0); return; }
@@ -50,7 +49,6 @@ export default function DashboardPage() {
   function handleAnalyse() {
     if (!canAnalyse) return;
     setStep(0);
-    setPanel(null);
     analyse.mutate({
       file: file!,
       customJd: mode === "aspiring" ? aspiringText : applyJd,
@@ -77,12 +75,9 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className="ts-dash">
+    <div className="ts-dash" data-view={activeCandidateId ? "results" : "analyse"}>
       {/* Left: upload panel */}
-      <div className="ts-upload" data-open={panel === "analyse"}>
-        <button type="button" className="ts-panel-close" aria-label="Close" onClick={() => setPanel(null)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
-        </button>
+      <div className="ts-upload">
         <div>
           <p style={{
             fontFamily: "var(--font-serif), 'Source Serif 4', serif",
