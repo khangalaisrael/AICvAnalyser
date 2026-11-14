@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const activeCandidateId = useAppStore((s) => s.activeCandidateId);
 
   // Picking a candidate closes the side panel
-  useEffect(() => { setPanel(null); }, [activeCandidateId, setPanel]);
+  useEffect(() => { if (activeCandidateId) setPanel(null); }, [activeCandidateId, setPanel]);
 
   useEffect(() => {
     if (!panel) return;

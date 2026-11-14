@@ -16,7 +16,7 @@ export const useAppStore = create<AppState>((set) => ({
   activeCandidateId: null,
   selectedRole: "Software Engineer",
   sidebarOpen: true,
-  mobilePanel: null,
+  mobilePanel: "analyse", // phones open straight onto the analyse form
   setActiveCandidateId: (id) => set({ activeCandidateId: id }),
   setSelectedRole: (r) => set({ selectedRole: r }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
