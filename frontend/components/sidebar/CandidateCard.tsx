@@ -86,7 +86,7 @@ export function CandidateCard({ candidate }: { candidate: CandidateSummary }) {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#22272f", fontVariantNumeric: "tabular-nums" }}>{candidate.score}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: dotColor, fontVariantNumeric: "tabular-nums" }}>{candidate.score}</span>
             </div>
             {candidate.pipeline_status && (
               <span style={{

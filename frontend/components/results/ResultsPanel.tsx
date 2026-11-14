@@ -9,6 +9,9 @@ import { ScoreBarCard } from "./ScoreBar";
 import { SkillPill } from "./SkillPill";
 import { CoachingPanel } from "./CoachingPanel";
 import { CVHealthPanel } from "./CVHealthPanel";
+import { ResultsNav } from "./ResultsNav";
+import { SkillCoverage } from "./SkillCoverage";
+import { CompareCard } from "./CompareCard";
 import type { PipelineStatus, SeniorityLevel } from "@/lib/types";
 
 const LABELS: Record<string, string> = {
@@ -107,6 +110,26 @@ export function ResultsPanel() {
       }}>
         {candidate_name || "Analysis results"}
       </p>
+
+      {/* One-line takeaway */}
+      <p style={{ fontSize: 15, color: "#52575f", margin: "-12px 0 18px", lineHeight: 1.5 }}>
+        <strong style={{ color: vs.text }}>
+          {score >= 75 ? "Strong match" : score >= 50 ? "Promising match" : "Needs work"}
+        </strong>
+        {missing.length > 0 && <> · {missing.length} skill {missing.length === 1 ? "gap" : "gaps"} to close</>}
+        {(ai.coaching?.quick_wins ?? []).length > 0 && <> · {ai.coaching?.quick_wins.length} quick {ai.coaching?.quick_wins.length === 1 ? "win" : "wins"}</>}
+      </p>
+
+      <ResultsNav
+        sections={[
+          { id: "sec-score", label: "Score" },
+          { id: "sec-skills", label: "Skills" },
+          ...(trendingNarrative || trending.length > 0 ? [{ id: "sec-market", label: "Market" }] : []),
+          ...(ai.coaching ? [{ id: "sec-coach", label: "Coaching" }] : []),
+          ...(cv_checklist ? [{ id: "sec-ats", label: "ATS" }] : []),
+        ]}
+      />
+      <span id="sec-score" className="ts-anchor" />
 
       {/* Role identity chip */}
       {researched_role && (
@@ -291,6 +314,9 @@ export function ResultsPanel() {
         </div>
       )}
 
+      <span id="sec-skills" className="ts-anchor" />
+      <SkillCoverage matched={matched.length} inferred={inferred.length} missing={missing.length} />
+
       {/* Skills — 2-column editorial layout */}
       <div className="ts-grid-2" style={{ gap: 16, marginBottom: 36 }}>
         {/* Left: Matched + Inferred */}
@@ -385,6 +411,7 @@ export function ResultsPanel() {
         </div>
       )}
 
+      <span id="sec-market" className="ts-anchor" />
       {/* Market intelligence — narrative storytelling */}
       {(trendingNarrative || trending.length > 0) && (
         <div style={{
@@ -450,6 +477,7 @@ export function ResultsPanel() {
         </p>
       </div>
 
+      <span id="sec-coach" className="ts-anchor" />
       {/* CV Coach */}
       {ai.coaching && (
         <div style={{ marginBottom: 36 }}>
@@ -457,12 +485,15 @@ export function ResultsPanel() {
         </div>
       )}
 
+      <span id="sec-ats" className="ts-anchor" />
       {/* CV Health Check */}
       {cv_checklist && (
         <div style={{ marginBottom: 36 }}>
           <CVHealthPanel checklist={cv_checklist} />
         </div>
       )}
+
+      <CompareCard current={candidate} />
 
       {/* Pipeline actions */}
       <div style={{ paddingTop: 4 }}>

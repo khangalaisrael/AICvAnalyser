@@ -22,6 +22,21 @@ export function ScoreRing({ score, size = 156, strokeWidth = 12, numSize = 42 }:
   const clamped = Math.max(0, Math.min(100, score));
   const finalOffset = C * (1 - clamped / 100);
   const [offset, setOffset] = useState(C);
+  const [shown, setShown] = useState(0);
+
+  // Count the number up in step with the ring.
+  useEffect(() => {
+    const start = performance.now();
+    const dur = 900;
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / dur);
+      setShown(Math.round(clamped * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [clamped]);
 
   useEffect(() => {
     const t = setTimeout(() => setOffset(finalOffset), 60);
@@ -60,7 +75,7 @@ export function ScoreRing({ score, size = 156, strokeWidth = 12, numSize = 42 }:
           fontFamily: "var(--font-serif), 'Source Serif 4', serif",
           fontSize: numSize, fontWeight: 600, color: "#22272f", lineHeight: 1,
         }}>
-          {clamped}
+          {shown}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#a7a99f" }}>
           / 100
