@@ -57,7 +57,7 @@ Streamlit UI
 
 ```text
 talentscan/
-├── app.py
+├── legacy/            # original Streamlit prototype (superseded by backend/ + frontend/)
 ├── pdf_processor.py
 ├── ai_client.py
 ├── scoring_engine.py
@@ -197,7 +197,7 @@ OPENAI_API_KEY=your_api_key_here
 Run the application:
 
 ```bash
-streamlit run app.py
+cd legacy && streamlit run app.py
 ```
 
 ## Example AI Response
